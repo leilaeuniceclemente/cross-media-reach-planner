@@ -4,8 +4,6 @@ An interactive cross-media reach and frequency planner. It models how a campaign
 reach, frequency, and brand awareness respond as spend moves across TV, radio, OOH, and
 digital platforms, and it reframes success from absolute reach to awareness growth.
 
-**Live demo:** https://leilistiic.github.io/cross-media-reach-planner/
-
 All data is **synthetic and reproducible**. There are no real rate cards, brands,
 audiences, or business context anywhere in this repository.
 
