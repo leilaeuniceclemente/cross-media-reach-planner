@@ -1,0 +1,25 @@
+scenario,platform,spend_share_pct,grp,reach_1plus_pct,reach_3plus_pct
+TV-skewed baseline,Free TV,90.0,562.0,85.1,71.3
+TV-skewed baseline,Radio,3.0,47.0,20.2,6.9
+TV-skewed baseline,OOH,2.5,47.0,26.4,5.1
+TV-skewed baseline,Meta,1.8,19.0,16.1,0.4
+TV-skewed baseline,YouTube,1.5,14.0,11.9,0.2
+TV-skewed baseline,TikTok,1.2,14.0,11.4,0.4
+Recommended mix,Free TV,73.5,354.0,81.1,55.8
+Recommended mix,Radio,4.4,54.0,21.2,8.1
+Recommended mix,OOH,3.5,50.0,27.4,5.8
+Recommended mix,Meta,7.1,58.0,36.1,5.2
+Recommended mix,YouTube,6.4,45.0,29.9,3.3
+Recommended mix,TikTok,5.1,46.0,26.4,4.7
+
+scenario,metric,value,,,
+TV-skewed baseline,Cross-Media Reach 1+ (%),94.3,,,
+TV-skewed baseline,Cross-Media Reach 3+ (%),74.9,,,
+TV-skewed baseline,Blended frequency,7.46,,,
+TV-skewed baseline,Awareness Index,40.4,,,
+TV-skewed baseline,Awareness Momentum vs YA,-11.2,,,
+Recommended mix,Cross-Media Reach 1+ (%),96.4,,,
+Recommended mix,Cross-Media Reach 3+ (%),66.6,,,
+Recommended mix,Blended frequency,6.29,,,
+Recommended mix,Awareness Index,49.2,,,
+Recommended mix,Awareness Momentum vs YA,-7.6,,,

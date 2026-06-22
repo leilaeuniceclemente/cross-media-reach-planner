@@ -1,0 +1,25 @@
+segment,platform,group,period,reach_within_segment_pct,share_of_mind_pct
+Affluent,Free TV,traditional,Year ago,80.0,36.9
+Affluent,Radio,traditional,Year ago,30.0,4.4
+Affluent,OOH,traditional,Year ago,55.0,3.2
+Affluent,Meta,digital,Year ago,72.0,21.0
+Affluent,YouTube,digital,Year ago,68.0,25.8
+Affluent,TikTok,digital,Year ago,40.0,8.7
+Affluent,Free TV,traditional,This year,74.0,23.3
+Affluent,Radio,traditional,This year,27.0,3.1
+Affluent,OOH,traditional,This year,55.0,2.9
+Affluent,Meta,digital,This year,78.0,25.2
+Affluent,YouTube,digital,This year,76.0,30.6
+Affluent,TikTok,digital,This year,52.0,15.0
+Mass,Free TV,traditional,Year ago,90.0,67.1
+Mass,Radio,traditional,Year ago,34.0,7.9
+Mass,OOH,traditional,Year ago,47.0,3.1
+Mass,Meta,digital,Year ago,34.0,8.6
+Mass,YouTube,digital,Year ago,30.0,9.6
+Mass,TikTok,digital,Year ago,22.0,3.6
+Mass,Free TV,traditional,This year,86.0,40.8
+Mass,Radio,traditional,This year,30.0,4.6
+Mass,OOH,traditional,This year,46.0,2.6
+Mass,Meta,digital,This year,56.0,17.5
+Mass,YouTube,digital,This year,55.0,20.4
+Mass,TikTok,digital,This year,48.0,14.1

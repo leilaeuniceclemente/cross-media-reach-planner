@@ -1,0 +1,3239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Media Reach &amp; Frequency Model</title>
+<style>
+  :root{
+    --ink:#15192b; --ink-soft:#3b4256; --mute:#7a8198;
+    --surface:#f5f6f9; --card:#ffffff; --line:#e3e6ee; --line-strong:#c9cee0;
+    --trad:#9aa1b4; --trad-deep:#6f7790;          /* traditional: quiet */
+    --digi:#4f46e5; --digi-deep:#3b32c9; --digi-soft:#ece9fe; /* digital: vivid */
+    --up:#0e9f6e; --down:#e02424; --hold:#b08900;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --r:10px; --shadow:0 1px 2px rgba(21,25,43,.06),0 8px 24px rgba(21,25,43,.05);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--surface);color:var(--ink);font-family:var(--sans);
+       line-height:1.5;-webkit-font-smoothing:antialiased;font-size:15px}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 18px}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .eyebrow{font-family:var(--mono);text-transform:uppercase;letter-spacing:.18em;
+           font-size:11px;color:var(--mute)}
+
+  /* header */
+  header.top{position:sticky;top:0;z-index:20;background:rgba(245,246,249,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .top-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:14px 18px;max-width:1040px;margin:0 auto;flex-wrap:wrap}
+  .brandmark{display:flex;flex-direction:column;gap:2px}
+  .brandmark .ttl{font-weight:800;letter-spacing:-.02em;font-size:17px}
+  .badge{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--digi-deep);background:var(--digi-soft);
+    border:1px solid #d9d4fb;border-radius:999px;padding:3px 9px;white-space:nowrap}
+  .tabs{display:flex;gap:4px;background:#eceef4;border:1px solid var(--line);
+    border-radius:999px;padding:4px}
+  .tab{appearance:none;border:0;background:transparent;font-family:var(--mono);
+    font-size:12px;letter-spacing:.02em;color:var(--ink-soft);padding:8px 14px;
+    border-radius:999px;cursor:pointer;white-space:nowrap}
+  .tab[aria-selected="true"]{background:var(--ink);color:#fff}
+  .tab:focus-visible{outline:2px solid var(--digi);outline-offset:2px}
+
+  /* generic */
+  section.pane{padding:26px 0 56px}
+  .lede{font-size:clamp(20px,2.6vw,27px);font-weight:800;letter-spacing:-.02em;
+    margin:8px 0 6px;max-width:30ch}
+  .sub{color:var(--ink-soft);max-width:62ch;margin:0 0 22px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    box-shadow:var(--shadow);padding:18px}
+  .card + .card{margin-top:18px}
+  .card-head{display:flex;align-items:baseline;justify-content:space-between;
+    gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .card-head h3{margin:0;font-size:14px;font-weight:800;letter-spacing:-.01em}
+  .card-head .hint{font-size:12px;color:var(--mute);font-family:var(--mono)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft)}
+  .swatch{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .dot.trad{background:var(--trad-deep)} .dot.digi{background:var(--digi)}
+
+  /* segment toggle */
+  .seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:999px;
+    overflow:hidden;background:#fff}
+  .seg button{appearance:none;border:0;background:#fff;font-family:var(--mono);
+    font-size:12px;padding:7px 13px;cursor:pointer;color:var(--ink-soft)}
+  .seg button + button{border-left:1px solid var(--line)}
+  .seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+  .seg button:focus-visible{outline:2px solid var(--digi);outline-offset:-2px}
+
+  /* slopegraph */
+  .slopewrap{width:100%;overflow:hidden}
+  svg{display:block;width:100%;height:auto}
+  .slope-line{stroke-width:2.5;fill:none;transition:opacity .2s}
+  .slope-pt{transition:r .2s}
+  .axislab{font-family:var(--mono);font-size:12px;fill:var(--mute)}
+  .plat-lab{font-family:var(--mono);font-size:11.5px}
+
+  /* reach bars */
+  .rb-row{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;
+    padding:9px 0;border-top:1px solid var(--line)}
+  .rb-row:first-child{border-top:0}
+  .rb-name{font-family:var(--mono);font-size:12.5px;display:flex;align-items:center;gap:7px}
+  .rb-track{position:relative;height:30px}
+  .rb-bar{position:absolute;top:4px;height:22px;border-radius:5px;
+    display:flex;align-items:center;justify-content:flex-end;padding-right:7px;
+    font-family:var(--mono);font-size:11px;color:#fff;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+  .rb-ya{top:0;height:30px;background:repeating-linear-gradient(135deg,#eef0f6,#eef0f6 6px,#e6e9f2 6px,#e6e9f2 12px);
+    border:1px dashed var(--line-strong);border-radius:5px;color:var(--mute);align-items:center}
+  .rb-delta{font-family:var(--mono);font-size:11px;margin-left:8px}
+
+  /* brand */
+  .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  select{font-family:var(--mono);font-size:13px;padding:8px 12px;border-radius:8px;
+    border:1px solid var(--line-strong);background:#fff;color:var(--ink)}
+  select:focus-visible{outline:2px solid var(--digi);outline-offset:1px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{text-align:right;padding:8px 10px;border-top:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-family:var(--mono);font-size:11px;color:var(--mute);font-weight:600;
+    text-transform:uppercase;letter-spacing:.04em;border-top:0}
+  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .tag{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:4px}
+  .tag.trad{background:#eef0f6;color:var(--trad-deep)}
+  .tag.digi{background:var(--digi-soft);color:var(--digi-deep)}
+  .best-note{font-family:var(--mono);font-size:12px;color:var(--digi-deep);
+    background:var(--digi-soft);border:1px solid #d9d4fb;border-radius:8px;
+    padding:8px 11px;margin-top:12px;display:inline-block}
+
+  /* planner */
+  .plan-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+  .sliders .srow{padding:11px 0;border-top:1px solid var(--line)}
+  .sliders .srow:first-child{border-top:0}
+  .srow-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .srow-name{font-family:var(--mono);font-size:12.5px;display:flex;align-items:center;gap:7px}
+  .srow-val{font-family:var(--mono);font-size:12.5px;color:var(--ink-soft)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;
+    border-radius:999px;background:var(--line);margin:10px 0 4px;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
+    border-radius:50%;background:#fff;border:2px solid var(--digi);cursor:pointer;
+    box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  input[type=range].trad::-webkit-slider-thumb{border-color:var(--trad-deep)}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
+    background:#fff;border:2px solid var(--digi);cursor:pointer}
+  input[type=range].trad::-moz-range-thumb{border-color:var(--trad-deep)}
+  input[type=range]:focus-visible{outline:2px solid var(--digi);outline-offset:3px}
+  .srow-meter{height:6px;border-radius:999px;background:var(--line);position:relative;margin-top:7px;overflow:hidden}
+  .srow-fill{position:absolute;left:0;top:0;height:100%;border-radius:999px;transition:width .25s}
+  .srow-readout{display:flex;gap:14px;margin-top:7px;font-family:var(--mono);font-size:11px;color:var(--mute);flex-wrap:wrap}
+  .srow-readout b{color:var(--ink);font-weight:600}
+
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .preset{appearance:none;font-family:var(--mono);font-size:12px;cursor:pointer;
+    border:1px solid var(--line-strong);background:#fff;color:var(--ink);
+    padding:8px 13px;border-radius:8px}
+  .preset:hover{border-color:var(--digi)}
+  .preset:focus-visible{outline:2px solid var(--digi);outline-offset:2px}
+
+  /* CMR signature */
+  .cmr-card{background:linear-gradient(180deg,#1a1f37,#15192b);color:#fff;border:0}
+  .cmr-card .eyebrow{color:#aeb6d6}
+  .cmr-big{font-family:var(--mono);font-weight:700;letter-spacing:-.02em;
+    font-size:clamp(40px,8vw,58px);line-height:1;margin:6px 0 2px}
+  .cmr-sub{color:#aeb6d6;font-size:12px;font-family:var(--mono)}
+  .formula{margin-top:16px;padding-top:14px;border-top:1px solid #2b3152}
+  .formula .ftitle{font-family:var(--mono);font-size:11px;color:#aeb6d6;
+    text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+  .fexpr{font-family:var(--mono);font-size:13px;color:#e8eaf5;line-height:1.9;
+    word-spacing:1px}
+  .fterm{background:#222848;border:1px solid #313a63;border-radius:5px;
+    padding:1px 6px;display:inline-block;margin:2px 1px}
+  .fterm.digi{border-color:#4f46e5;color:#c9c4ff}
+  .fans{color:#7ee0bd}
+
+  .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+  .metric{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px}
+  .metric .k{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;
+    letter-spacing:.07em;color:var(--mute)}
+  .metric .v{font-family:var(--mono);font-weight:700;font-size:22px;margin-top:3px;letter-spacing:-.01em}
+  .metric .v small{font-size:13px;font-weight:600;color:var(--ink-soft)}
+  .delta-up{color:var(--up)} .delta-down{color:var(--down)} .delta-hold{color:var(--hold)}
+
+  .planreadout table{margin-top:2px}
+  .meterbar{height:7px;border-radius:999px;background:var(--line);position:relative;min-width:80px}
+  .meterbar i{position:absolute;left:0;top:0;height:100%;border-radius:999px;transition:width .3s}
+  .meterbar .ceil{position:absolute;top:-3px;height:13px;width:2px;background:var(--down);opacity:.5}
+
+  .foot{color:var(--mute);font-size:12px;border-top:1px solid var(--line);
+    padding:18px 0 30px;margin-top:10px}
+  .hidden{display:none !important}
+
+  @media (max-width:760px){
+    .plan-grid{grid-template-columns:1fr}
+    .metrics{grid-template-columns:repeat(2,1fr)}
+    .rb-row{grid-template-columns:80px 1fr}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <div class="brandmark">
+      <span class="eyebrow">Media R&amp;F Model</span>
+      <span class="ttl">Reach, frequency &amp; share of mind</span>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div class="tabs" role="tablist" aria-label="Views">
+        <button class="tab" id="tabbtn-1" role="tab" aria-selected="true" aria-controls="pane-1">Consumption &amp; share of mind</button>
+        <button class="tab" id="tabbtn-2" role="tab" aria-selected="false" aria-controls="pane-2">Cross-media mix planner</button>
+      </div>
+      <span class="badge" title="All figures are synthetic and reproducible">Synthetic data</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= TAB 1 ================= -->
+  <section class="pane" id="pane-1" role="tabpanel" aria-labelledby="tabbtn-1">
+    <p class="eyebrow">Diagnostic</p>
+    <h1 class="lede">Headline reach barely moves. What moves is where attention lives.</h1>
+    <p class="sub">Traditional platforms hold their reach while their share of mind erodes; digital
+      carries the growth. Same picture at the brand level, and it splits sharply by audience.</p>
+
+    <!-- Share of mind slope -->
+    <div class="card">
+      <div class="card-head">
+        <h3>Share of mind, year ago to this year</h3>
+        <span class="hint">minutes per viewer &times; viewers, normalised</span>
+      </div>
+      <div class="controls" style="margin-bottom:14px">
+        <div class="seg" id="seg-som" role="group" aria-label="Audience segment">
+          <button data-seg="all" aria-pressed="true">All</button>
+          <button data-seg="affluent" aria-pressed="false">Affluent</button>
+          <button data-seg="mass" aria-pressed="false">Mass</button>
+        </div>
+        <div class="legend">
+          <span class="swatch"><i class="dot trad"></i>Traditional</span>
+          <span class="swatch"><i class="dot digi"></i>Digital</span>
+        </div>
+      </div>
+      <div class="slopewrap"><svg id="slope" viewBox="0 0 640 380" aria-label="Share of mind slopegraph"></svg></div>
+    </div>
+
+    <!-- Reach by platform -->
+    <div class="card">
+      <div class="card-head">
+        <h3>Reach by platform</h3>
+        <span class="hint" id="reach-hint">within audience, year ago &rarr; this year</span>
+      </div>
+      <div class="controls" style="margin-bottom:12px">
+        <div class="seg" id="seg-reach" role="group" aria-label="Audience segment for reach">
+          <button data-seg="all" aria-pressed="true">All</button>
+          <button data-seg="affluent" aria-pressed="false">Affluent</button>
+          <button data-seg="mass" aria-pressed="false">Mass</button>
+        </div>
+      </div>
+      <div id="reach-bars"></div>
+      <p class="sub" id="reach-read" style="margin:14px 0 0;font-size:13px"></p>
+    </div>
+
+    <!-- Brand historical R&F -->
+    <div class="card">
+      <div class="card-head">
+        <h3>Historical reach &amp; frequency by brand</h3>
+        <span class="hint">8 quarters, cross-media</span>
+      </div>
+      <div class="controls" style="margin-bottom:14px">
+        <label class="eyebrow" for="brand-pick" style="align-self:center">Brand</label>
+        <select id="brand-pick" aria-label="Select brand"></select>
+        <div class="legend">
+          <span class="swatch"><span class="dot" style="background:var(--trad)"></span>Net reach 1+</span>
+          <span class="swatch"><span class="dot" style="background:#0e9f6e"></span>Unaided</span>
+          <span class="swatch"><span class="dot" style="background:var(--digi)"></span>Top-of-mind</span>
+        </div>
+      </div>
+      <div class="slopewrap"><svg id="brand-chart" viewBox="0 0 640 320" aria-label="Brand reach trend"></svg></div>
+      <div id="brand-best" class="best-note"></div>
+      <div style="overflow-x:auto;margin-top:16px">
+        <table id="brand-table" aria-label="Brand reach and frequency by platform">
+          <thead><tr>
+            <th>Platform</th><th>Reach 1+ YA</th><th>Reach 1+ TY</th>
+            <th>Freq YA</th><th>Freq TY</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TAB 2 ================= -->
+  <section class="pane hidden" id="pane-2" role="tabpanel" aria-labelledby="tabbtn-2">
+    <p class="eyebrow">Planner</p>
+    <h1 class="lede">Reallocate spend. Watch de-duplicated reach and awareness respond.</h1>
+    <p class="sub">Combined reach is de-duplicated with Sainsbury's formula. Awareness is reach
+      weighted by share of mind, read against last year's plan and against doing nothing.</p>
+
+    <div class="controls" style="margin-bottom:14px">
+      <label class="eyebrow" for="plan-brand" style="align-self:center">Plan for</label>
+      <select id="plan-brand" aria-label="Select brand to plan for"></select>
+      <span class="hint" id="plan-brand-note" style="align-self:center"></span>
+    </div>
+
+    <div class="presets">
+      <button class="preset" data-preset="baseline">TV-skewed baseline</button>
+      <button class="preset" data-preset="recommended">Recommended plan</button>
+      <button class="preset" data-preset="reset" title="Clear all spend">Clear</button>
+    </div>
+
+    <div class="plan-grid">
+      <!-- left: sliders + per-platform readout -->
+      <div>
+        <div class="card sliders">
+          <div class="card-head">
+            <h3>Spend by platform</h3>
+            <span class="hint" id="budget-read"></span>
+          </div>
+          <div id="slider-rows"></div>
+        </div>
+
+        <div class="card planreadout">
+          <div class="card-head"><h3>Per-platform delivery</h3>
+            <span class="hint">bar = population reach, tick = reachable ceiling</span></div>
+          <div style="overflow-x:auto">
+            <table aria-label="Per-platform delivery">
+              <thead><tr>
+                <th>Platform</th><th>GRP</th><th>Pop 1+</th><th>In-platf 1+</th>
+                <th>3+</th><th>Freq</th><th style="min-width:90px">Reach</th>
+              </tr></thead>
+              <tbody id="plan-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- right: CMR signature + metrics -->
+      <div>
+        <div class="card cmr-card">
+          <p class="eyebrow">Cross-media reach (1+)</p>
+          <div class="cmr-big mono" id="cmr-big">--</div>
+          <div class="cmr-sub" id="cmr-people">--</div>
+          <div class="formula">
+            <div class="ftitle">Sainsbury de-duplication</div>
+            <div class="fexpr" id="cmr-formula"></div>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="metric"><div class="k">Effective reach 3+</div>
+            <div class="v mono" id="m-cmr3">--</div></div>
+          <div class="metric"><div class="k">Blended frequency</div>
+            <div class="v mono" id="m-freq">--</div></div>
+          <div class="metric"><div class="k" id="m-a1k">Awareness index</div>
+            <div class="v mono" id="m-a1v">--</div></div>
+          <div class="metric"><div class="k" id="m-a2k">Total spend</div>
+            <div class="v mono" id="m-a2v">--</div></div>
+          <div class="metric"><div class="k" id="m-vdnk">Awareness vs do-nothing</div>
+            <div class="v mono" id="m-vdn">--</div></div>
+          <div class="metric"><div class="k" id="m-vyak">Awareness vs year ago</div>
+            <div class="v mono" id="m-vya">--</div></div>
+        </div>
+        <p class="sub" id="plan-note" style="font-size:12.5px;margin-top:14px"></p>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot wrap" style="padding-left:0;padding-right:0">
+    Synthetic, reproducible dataset. Single-medium reach uses a negative binomial
+    exposure model with a reachable-base cap; platforms combine with Sainsbury's
+    random-duplication formula. No real rate cards, brands, or business context.
+  </p>
+</main>
+
+<script>
+"use strict";
+const DATA = {
+  "meta": {
+    "currency": "PHP",
+    "universe": 60000000,
+    "effective_freq": 3,
+    "default_budget": 90000000,
+    "quarters": [
+      "Q1 YA",
+      "Q2 YA",
+      "Q3 YA",
+      "Q4 YA",
+      "Q1 TY",
+      "Q2 TY",
+      "Q3 TY",
+      "Q4 TY"
+    ],
+    "note": "Synthetic, reproducible data. No real rate cards, brands, or business context."
+  },
+  "platforms": [
+    {
+      "key": "tv",
+      "name": "Free TV",
+      "group": "traditional",
+      "cover_max": 0.88,
+      "r": 3.0,
+      "cpm": 240,
+      "grp_max": 900,
+      "som_ty": 0.3694083121827411,
+      "som_ya": 0.5214814814814814,
+      "minutes_ty": 115,
+      "minutes_ya": 128,
+      "viewers_ty": 40.5,
+      "viewers_ya": 44.0
+    },
+    {
+      "key": "radio",
+      "name": "Radio",
+      "group": "traditional",
+      "cover_max": 0.3,
+      "r": 1.7,
+      "cpm": 95,
+      "grp_max": 500,
+      "som_ty": 0.03747620558375635,
+      "som_ya": 0.05555555555555555,
+      "minutes_ty": 35,
+      "minutes_ya": 40,
+      "viewers_ty": 13.5,
+      "viewers_ya": 15.0
+    },
+    {
+      "key": "ooh",
+      "name": "OOH",
+      "group": "traditional",
+      "cover_max": 0.45,
+      "r": 2.8,
+      "cpm": 80,
+      "grp_max": 420,
+      "som_ty": 0.028553299492385786,
+      "som_ya": 0.034444444444444444,
+      "minutes_ty": 12,
+      "minutes_ya": 12,
+      "viewers_ty": 30.0,
+      "viewers_ya": 31.0
+    },
+    {
+      "key": "meta",
+      "name": "Meta",
+      "group": "digital",
+      "cover_max": 0.8,
+      "r": 1.6,
+      "cpm": 140,
+      "grp_max": 1100,
+      "som_ty": 0.19892131979695432,
+      "som_ya": 0.15888888888888889,
+      "minutes_ty": 66,
+      "minutes_ya": 52,
+      "viewers_ty": 38.0,
+      "viewers_ya": 33.0
+    },
+    {
+      "key": "yt",
+      "name": "YouTube",
+      "group": "digital",
+      "cover_max": 0.72,
+      "r": 1.8,
+      "cpm": 165,
+      "grp_max": 1100,
+      "som_ty": 0.22763324873096447,
+      "som_ya": 0.16666666666666666,
+      "minutes_ty": 82,
+      "minutes_ya": 60,
+      "viewers_ty": 35.0,
+      "viewers_ya": 30.0
+    },
+    {
+      "key": "tt",
+      "name": "TikTok",
+      "group": "digital",
+      "cover_max": 0.55,
+      "r": 1.4,
+      "cpm": 130,
+      "grp_max": 1000,
+      "som_ty": 0.13800761421319796,
+      "som_ya": 0.06296296296296296,
+      "minutes_ty": 60,
+      "minutes_ya": 34,
+      "viewers_ty": 29.0,
+      "viewers_ya": 20.0
+    }
+  ],
+  "baseline_weights": {
+    "tv": 0.9,
+    "radio": 0.03,
+    "ooh": 0.025,
+    "meta": 0.018,
+    "yt": 0.015,
+    "tt": 0.012
+  },
+  "baseline_spend": {
+    "tv": 81000000.0,
+    "radio": 2700000.0,
+    "ooh": 2250000.0,
+    "meta": 1619999.9999999998,
+    "yt": 1350000.0,
+    "tt": 1080000.0
+  },
+  "recommended_spend": {
+    "tv": 50942146.94198112,
+    "radio": 3065634.409919718,
+    "ooh": 2415763.2379440316,
+    "meta": 4890934.967820245,
+    "yt": 4448397.438724864,
+    "tt": 3567624.7941317386
+  },
+  "model_opt_spend": {
+    "tv": 27000000.0,
+    "radio": 2250000.0,
+    "ooh": 3000000.0,
+    "meta": 22500000.0,
+    "yt": 23250000.0,
+    "tt": 12000000.0
+  },
+  "brands": [
+    "Brand Aster",
+    "Brand Briar",
+    "Brand Cedar",
+    "Brand Dune",
+    "Brand Ember",
+    "Brand Fern",
+    "Brand Grove",
+    "Brand Haven",
+    "Brand Ivory",
+    "Brand Juno"
+  ],
+  "brand_series": {
+    "Brand Aster": {
+      "quarters": [
+        "Q1 YA",
+        "Q2 YA",
+        "Q3 YA",
+        "Q4 YA",
+        "Q1 TY",
+        "Q2 TY",
+        "Q3 TY",
+        "Q4 TY"
+      ],
+      "platforms_reach": {
+        "Free TV": [
+          45.8,
+          49.4,
+          49.0,
+          43.2,
+          47.1,
+          48.4,
+          45.2,
+          46.3
+        ],
+        "Radio": [
+          23.2,
+          22.0,
+          22.1,
+          21.0,
+          19.0,
+          17.7,
+          19.5,
+          19.8
+        ],
+        "OOH": [
+          30.5,
+          26.9,
+          27.9,
+          24.3,
+          25.0,
+          25.9,
+          27.7,
+          26.7
+        ],
+        "Meta": [
+          44.6,
+          53.6,
+          55.8,
+          59.7,
+          60.9,
+          59.7,
+          56.7,
+          61.4
+        ],
+        "YouTube": [
+          35.3,
+          37.1,
+          34.4,
+          38.1,
+          43.7,
+          43.9,
+          49.5,
+          54.4
+        ],
+        "TikTok": [
+          27.4,
+          25.8,
+          27.4,
+          28.5,
+          31.4,
+          32.1,
+          36.2,
+          39.3
+        ]
+      },
+      "cmr1": [
+        92.5,
+        93.8,
+        94.0,
+        93.9,
+        95.2,
+        95.2,
+        95.5,
+        96.6
+      ],
+      "toma": [
+        33.7,
+        39.7,
+        41.4,
+        38.2,
+        47.2,
+        47.0,
+        49.5,
+        54.7
+      ],
+      "uba": [
+        74.7,
+        77.0,
+        76.7,
+        75.3,
+        79.2,
+        77.5,
+        78.8,
+        81.5
+      ],
+      "benchmark": "toma",
+      "uba_level": 77.6,
+      "best_quarters": [
+        4,
+        6,
+        7
+      ],
+      "worst_quarters": [
+        0,
+        1,
+        3
+      ],
+      "summary": [
+        {
+          "platform": "Free TV",
+          "group": "traditional",
+          "r1_ya": 46.9,
+          "r1_ty": 46.8,
+          "freq_ya": 1.63,
+          "freq_ty": 1.62
+        },
+        {
+          "platform": "Radio",
+          "group": "traditional",
+          "r1_ya": 22.1,
+          "r1_ty": 19.0,
+          "freq_ya": 2.77,
+          "freq_ty": 2.17
+        },
+        {
+          "platform": "OOH",
+          "group": "traditional",
+          "r1_ya": 27.4,
+          "r1_ty": 26.3,
+          "freq_ya": 1.85,
+          "freq_ty": 1.77
+        },
+        {
+          "platform": "Meta",
+          "group": "digital",
+          "r1_ya": 53.4,
+          "r1_ty": 59.7,
+          "freq_ya": 2.44,
+          "freq_ty": 2.92
+        },
+        {
+          "platform": "YouTube",
+          "group": "digital",
+          "r1_ya": 36.2,
+          "r1_ty": 47.9,
+          "freq_ya": 1.7,
+          "freq_ty": 2.31
+        },
+        {
+          "platform": "TikTok",
+          "group": "digital",
+          "r1_ya": 27.3,
+          "r1_ty": 34.8,
+          "freq_ya": 1.79,
+          "freq_ty": 2.35
+        }
+      ]
+    },
+    "Brand Briar": {
+      "quarters": [
+        "Q1 YA",
+        "Q2 YA",
+        "Q3 YA",
+        "Q4 YA",
+        "Q1 TY",
+        "Q2 TY",
+        "Q3 TY",
+        "Q4 TY"
+      ],
+      "platforms_reach": {
+        "Free TV": [
+          57.9,
+          57.4,
+          51.7,
+          47.6,
+          50.6,
+          46.8,
+          51.0,
+          46.5
+        ],
+        "Radio": [
+          21.8,
+          23.0,
+          22.8,
+          21.7,
+          20.4,
+          19.8,
+          18.3,
+          18.9
+        ],
+        "OOH": [
+          26.2,
+          28.1,
+          25.6,
+          24.4,
+          23.2,
+          25.6,
+          25.4,
+          23.9
+        ],
+        "Meta": [
+          35.3,
+          34.3,
+          39.7,
+          46.4,
+          45.3,
+          43.2,
+          46.1,
+          51.4
+        ],
+        "YouTube": [
+          31.0,
+          33.4,
+          35.9,
+          37.1,
+          42.9,
+          44.0,
+          45.3,
+          50.3
+        ],
+        "TikTok": [
+          38.5,
+          39.6,
+          38.0,
+          41.7,
+          41.4,
+          43.0,
+          42.8,
+          46.7
+        ]
+      },
+      "cmr1": [
+        93.3,
+        93.8,
+        93.3,
+        93.9,
+        94.5,
+        94.2,
+        95.0,
+        95.8
+      ],
+      "toma": [
+        38.6,
+        39.0,
+        36.2,
+        38.9,
+        48.7,
+        42.9,
+        53.5,
+        57.4
+      ],
+      "uba": [
+        78.8,
+        80.0,
+        79.6,
+        80.1,
+        80.6,
+        79.7,
+        83.4,
+        82.7
+      ],
+      "benchmark": "toma",
+      "uba_level": 80.6,
+      "best_quarters": [
+        4,
+        6,
+        7
+      ],
+      "worst_quarters": [
+        0,
+        2,
+        3
+      ],
+      "summary": [
+        {
+          "platform": "Free TV",
+          "group": "traditional",
+          "r1_ya": 53.6,
+          "r1_ty": 48.7,
+          "freq_ya": 1.82,
+          "freq_ty": 1.67
+        },
+        {
+          "platform": "Radio",
+          "group": "traditional",
+          "r1_ya": 22.3,
+          "r1_ty": 19.4,
+          "freq_ya": 2.82,
+          "freq_ty": 2.22
+        },
+        {
+          "platform": "OOH",
+          "group": "traditional",
+          "r1_ya": 26.1,
+          "r1_ty": 24.5,
+          "freq_ya": 1.76,
+          "freq_ty": 1.67
+        },
+        {
+          "platform": "Meta",
+          "group": "digital",
+          "r1_ya": 38.9,
+          "r1_ty": 46.5,
+          "freq_ya": 1.72,
+          "freq_ty": 2.0
+        },
+        {
+          "platform": "YouTube",
+          "group": "digital",
+          "r1_ya": 34.4,
+          "r1_ty": 45.6,
+          "freq_ya": 1.64,
+          "freq_ty": 2.14
+        },
+        {
+          "platform": "TikTok",
+          "group": "digital",
+          "r1_ya": 39.5,
+          "r1_ty": 43.5,
+          "freq_ya": 2.87,
+          "freq_ty": 3.72
+        }
+      ]
+    },
+    "Brand Cedar": {
+      "quarters": [
+        "Q1 YA",
+        "Q2 YA",
+        "Q3 YA",
+        "Q4 YA",
+        "Q1 TY",
+        "Q2 TY",
+        "Q3 TY",
+        "Q4 TY"
+      ],
+      "platforms_reach": {
+        "Free TV": [
+          45.1,
+          50.2,
+          48.1,
+          47.3,
+          41.9,
+          43.2,
+          44.4,
+          40.5
+        ],
+        "Radio": [
+          18.9,
+          18.9,
+          18.6,
+          19.0,
+          16.7,
+          16.8,
+          15.8,
+          15.4
+        ],
+        "OOH": [
+          23.4,
+          20.8,
+          22.2,
+          22.9,
+          23.6,
+          23.0,
+          23.5,
+          20.3
+        ],
+        "Meta": [
+          41.1,
+          39.7,
+          43.2,
+          47.4,
+          49.2,
+          48.5,
+          55.6,
+          55.6
+        ],
+        "YouTube": [
+          28.1,
+          31.5,
+          32.9,
+          33.8,
+          37.6,
+          38.4,
+          47.1,
+          47.6
+        ],
+        "TikTok": [
+          23.5,
+          26.5,
+          26.7,
+          27.3,
+          30.6,
+          33.0,
+          33.2,
+          36.9
+        ]
+      },
+      "cmr1": [
+        89.0,
+        90.3,
+        90.8,
+        91.7,
+        91.9,
+        92.3,
+        94.4,
+        94.1
+      ],
+      "toma": [
+        36.1,
+        43.1,
+        44.8,
+        46.4,
+        43.9,
+        46.6,
+        57.4,
+        55.6
+      ],
+      "uba": [
+        79.1,
+        79.4,
+        80.6,
+        81.9,
+        80.0,
+        80.6,
+        81.7,
+        82.5
+      ],
+      "benchmark": "toma",
+      "uba_level": 80.7,
+      "best_quarters": [
+        5,
+        6,
+        7
+      ],
+      "worst_quarters": [
+        0,
+        1,
+        4
+      ],
+      "summary": [
+        {
+          "platform": "Free TV",
+          "group": "traditional",
+          "r1_ya": 47.7,
+          "r1_ty": 42.5,
+          "freq_ya": 1.65,
+          "freq_ty": 1.53
+        },
+        {
+          "platform": "Radio",
+          "group": "traditional",
+          "r1_ya": 18.9,
+          "r1_ty": 16.2,
+          "freq_ya": 2.14,
+          "freq_ty": 1.82
+        },
+        {
+          "platform": "OOH",
+          "group": "traditional",
+          "r1_ya": 22.3,
+          "r1_ty": 22.6,
+          "freq_ya": 1.56,
+          "freq_ty": 1.58
+        },
+        {
+          "platform": "Meta",
+          "group": "digital",
+          "r1_ya": 42.9,
+          "r1_ty": 52.2,
+          "freq_ya": 1.84,
+          "freq_ty": 2.32
+        },
+        {
+          "platform": "YouTube",
+          "group": "digital",
+          "r1_ya": 31.6,
+          "r1_ty": 42.7,
+          "freq_ya": 1.56,
+          "freq_ty": 2.0
+        },
+        {
+          "platform": "TikTok",
+          "group": "digital",
+          "r1_ya": 26.0,
+          "r1_ty": 33.4,
+          "freq_ya": 1.72,
+          "freq_ty": 2.21
+        }
+      ]
+    },
+    "Brand Dune": {
+      "quarters": [
+        "Q1 YA",
+        "Q2 YA",
+        "Q3 YA",
+        "Q4 YA",
+        "Q1 TY",
+        "Q2 TY",
+        "Q3 TY",
+        "Q4 TY"
+      ],
+      "platforms_reach": {
+        "Free TV": [
+          55.3,
+          51.1,
+          50.2,
+          42.2,
+          48.9,
+          41.9,
+          45.0,
+          44.1
+        ],
+        "Radio": [
+          22.1,
+          20.5,
+          20.1,
+          19.0,
+          19.5,
+          19.1,
+          17.9,
+          19.5
+        ],
+        "OOH": [
+          29.0,
+          25.9,
+          24.8,
+          23.5,
+          25.3,
+          24.3,
+          24.2,
+          22.3
+        ],
+        "Meta": [
+          36.0,
+          37.0,
+          40.6,
+          43.5,
+          44.1,
+          45.1,
+          45.4,
+          52.3
+        ],
+        "YouTube": [
+          40.6,
+          45.0,
+          47.1,
+          52.0,
+          55.4,
+          53.8,
+          58.1,
+          61.3
+        ],
+        "TikTok": [
+          23.4,
+          26.4,
+          28.7,
+          29.0,
+          30.2,
+          30.5,
+          32.8,
+          34.7
+        ]
+      },
+      "cmr1": [
+        92.8,
+        92.7,
+        93.3,
+        93.1,
+        94.7,
+        93.7,
+        94.7,
+        95.8
+      ],
+      "toma": [
+        35.5,
+        35.8,
+        39.6,
+        33.1,
+        48.6,
+        38.6,
+        47.3,
+        56.4
+      ],
+      "uba": [
+        75.7,
+        76.1,
+        76.3,
+        75.3,
+        80.6,
+        77.8,
+        79.5,
+        81.4
+      ],
+      "benchmark": "toma",
+      "uba_level": 77.8,
+      "best_quarters": [
+        4,
+        6,
+        7
+      ],
+      "worst_quarters": [
+        0,
+        1,
+        3
+      ],
+      "summary": [
+        {
+          "platform": "Free TV",
+          "group": "traditional",
+          "r1_ya": 49.7,
+          "r1_ty": 45.0,
+          "freq_ya": 1.71,
+          "freq_ty": 1.58
+        },
+        {
+          "platform": "Radio",
+          "group": "traditional",
+          "r1_ya": 20.4,
+          "r1_ty": 19.0,
+          "freq_ya": 2.42,
+          "freq_ty": 2.17
+        },
+        {
+          "platform": "OOH",
+          "group": "traditional",
+          "r1_ya": 25.8,
+          "r1_ty": 24.0,
+          "freq_ya": 1.75,
+          "freq_ty": 1.65
+        },
+        {
+          "platform": "Meta",
+          "group": "digital",
+          "r1_ya": 39.3,
+          "r1_ty": 46.7,
+          "freq_ya": 1.72,
+          "freq_ty": 2.01
+        },
+        {
+          "platform": "YouTube",
+          "group": "digital",
+          "r1_ya": 46.2,
+          "r1_ty": 57.1,
+          "freq_ya": 2.19,
+          "freq_ty": 3.26
+        },
+        {
+          "platform": "TikTok",
+          "group": "digital",
+          "r1_ya": 26.9,
+          "r1_ty": 32.0,
+          "freq_ya": 1.77,
+          "freq_ty": 2.09
+        }
+      ]
+    },
+    "Brand Ember": {
+      "quarters": [
+        "Q1 YA",
+        "Q2 YA",
+        "Q3 YA",
+        "Q4 YA",
+        "Q1 TY",
+        "Q2 TY",
+        "Q3 TY",
+        "Q4 TY"
+      ],
+      "platforms_reach": {
+        "Free TV": [
+          45.9,
+          43.2,
+          42.9,
+          41.8,
+          41.1,
+          42.3,
+          38.8,
+          42.7
+        ],
+        "Radio": [
+          19.6,
+          18.0,
+          17.4,
+          18.6,
+          17.6,
+          16.7,
+          15.6,
+          14.8
+        ],
+        "OOH": [
+          23.7,
+          24.2,
+          22.8,
+          18.3,
+          18.7,
+          19.3,
+          20.2,
+          20.6
+        ],
+        "Meta": [
+          35.6,
+          42.4,
+          44.5,
+          42.6,
+          48.9,
+          45.9,
+          50.8,
+          50.7
+        ],
+        "YouTube": [
+          26.9,
+          31.3,
+          29.0,
+          36.7,
+          35.3,
+          37.8,
+          41.1,
+          43.8
+        ],
+        "TikTok": [
+          21.7,
+          25.5,
+          26.4,
+          26.1,
+          28.8,
+          28.0,
+          30.4,
+          36.2
+        ]
+      },
+      "cmr1": [
+        87.8,
+        89.6,
+        89.5,
+        89.6,
+        90.7,
+        90.6,
+        91.7,
+        93.1
+      ],
+      "toma": [
+        23.0,
+        27.3,
+        26.9,
+        30.0,
+        34.5,
+        35.1,
+        36.2,
+        45.9
+      ],
+      "uba": [
+        51.6,
+        56.6,
+        55.5,
+        56.3,
+        61.1,
+        60.8,
+        63.2,
+        71.1
+      ],
+      "benchmark": "uba",
+      "uba_level": 59.5,
+      "best_quarters": [
+        4,
+        6,
+        7
+      ],
+      "worst_quarters": [
+        0,
+        2,
+        3
+      ],
+      "summary": [
+        {
+          "platform": "Free TV",
+          "group": "traditional",
+          "r1_ya": 43.5,
+          "r1_ty": 41.2,
+          "freq_ya": 1.55,
+          "freq_ty": 1.5
+        },
+        {
+          "platform": "Radio",
+          "group": "traditional",
+          "r1_ya": 18.4,
+          "r1_ty": 16.2,
+          "freq_ya": 2.08,
+          "freq_ty": 1.82
+        },
+        {
+          "platform": "OOH",
+          "group": "traditional",
+          "r1_ya": 22.2,
+          "r1_ty": 19.7,
+          "freq_ya": 1.57,
+          "freq_ty": 1.46
+        },
+        {
+          "platform": "Meta",
+          "group": "digital",
+          "r1_ya": 41.3,
+          "r1_ty": 49.1,
+          "freq_ya": 1.79,
+          "freq_ty": 2.12
+        },
+        {
+          "platform": "YouTube",
+          "group": "digital",
+          "r1_ya": 31.0,
+          "r1_ty": 39.5,
+          "freq_ya": 1.54,
+          "freq_ty": 1.83
+        },
+        {
+          "platform": "TikTok",
+          "group": "digital",
+          "r1_ya": 24.9,
+          "r1_ty": 30.9,
+          "freq_ya": 1.67,
+          "freq_ty": 2.03
+        }
+      ]
+    },
+    "Brand Fern": {
+      "quarters": [
+        "Q1 YA",
+        "Q2 YA",
+        "Q3 YA",
+        "Q4 YA",
+        "Q1 TY",
+        "Q2 TY",
+        "Q3 TY",
+        "Q4 TY"
+      ],
+      "platforms_reach": {
+        "Free TV": [
+          45.6,
+          46.7,
+          37.7,
+          42.6,
+          45.0,
+          37.6,
+          42.1,
+          43.0
+        ],
+        "Radio": [
+          20.3,
+          20.3,
+          18.6,
+          18.3,
+          16.8,
+          15.2,
+          17.2,
+          15.6
+        ],
+        "OOH": [
+          19.1,
+          17.3,
+          17.9,
+          15.4,
+          17.2,
+          18.6,
+          15.8,
+          16.2
+        ],
+        "Meta": [
+          33.8,
+          36.1,
+          38.3,
+          41.7,
+          44.6,
+          40.9,
+          43.8,
+          45.7
+        ],
+        "YouTube": [
+          27.0,
+          26.9,
+          27.7,
+          34.2,
+          38.8,
+          38.6,
+          41.0,
+          46.7
+        ],
+        "TikTok": [
+          20.7,
+          24.2,
+          23.4,
+          24.8,
+          29.2,
+          28.3,
+          32.5,
+          32.7
+        ]
+      },
+      "cmr1": [
+        86.6,
+        87.6,
+        85.8,
+        88.6,
+        90.9,
+        88.8,
+        91.0,
+        92.1
+      ],
+      "toma": [
+        28.0,
+        30.6,
+        23.8,
+        35.5,
+        42.3,
+        33.9,
+        41.8,
+        46.4
+      ],
+      "uba": [
+        58.0,
+        58.4,
+        54.7,
+        62.6,
+        69.0,
+        61.4,
+        67.6,
+        72.1
+      ],
+      "benchmark": "uba",
+      "uba_level": 63.0,
+      "best_quarters": [
+        4,
+        6,
+        7
+      ],
+      "worst_quarters": [
+        0,
+        1,
+        2
+      ],
+      "summary": [
+        {
+          "platform": "Free TV",
+          "group": "traditional",
+          "r1_ya": 43.2,
+          "r1_ty": 41.9,
+          "freq_ya": 1.54,
+          "freq_ty": 1.52
+        },
+        {
+          "platform": "Radio",
+          "group": "traditional",
+          "r1_ya": 19.4,
+          "r1_ty": 16.2,
+          "freq_ya": 2.22,
+          "freq_ty": 1.83
+        },
+        {
+          "platform": "OOH",
+          "group": "traditional",
+          "r1_ya": 17.4,
+          "r1_ty": 16.9,
+          "freq_ya": 1.39,
+          "freq_ty": 1.37
+        },
+        {
+          "platform": "Meta",
+          "group": "digital",
+          "r1_ya": 37.5,
+          "r1_ty": 43.8,
+          "freq_ya": 1.66,
+          "freq_ty": 1.88
+        },
+        {
+          "platform": "YouTube",
+          "group": "digital",
+          "r1_ya": 28.9,
+          "r1_ty": 41.3,
+          "freq_ya": 1.48,
+          "freq_ty": 1.92
+        },
+        {
+          "platform": "TikTok",
+          "group": "digital",
+          "r1_ya": 23.3,
+          "r1_ty": 30.7,
+          "freq_ya": 1.59,
+          "freq_ty": 2.0
+        }
+      ]
+    },
+    "Brand Grove": {
+      "quarters": [
+        "Q1 YA",
+        "Q2 YA",
+        "Q3 YA",
+        "Q4 YA",
+        "Q1 TY",
+        "Q2 TY",
+        "Q3 TY",
+        "Q4 TY"
+      ],
+      "platforms_reach": {
+        "Free TV": [
+          41.0,
+          43.6,
+          39.6,
+          38.6,
+          39.1,
+          37.8,
+          41.0,
+          37.6
+        ],
+        "Radio": [
+          20.1,
+          20.4,
+          20.8,
+          19.9,
+          17.7,
+          15.8,
+          17.5,
+          16.8
+        ],
+        "OOH": [
+          22.6,
+          22.4,
+          24.0,
+          19.3,
+          19.5,
+          22.6,
+          22.4,
+          20.5
+        ],
+        "Meta": [
+          34.4,
+          38.9,
+          47.1,
+          44.6,
+          47.3,
+          52.0,
+          52.2,
+          54.2
+        ],
+        "YouTube": [
+          27.3,
+          29.6,
+          34.0,
+          31.8,
+          38.5,
+          41.7,
+          43.2,
+          44.2
+        ],
+        "TikTok": [
+          25.0,
+          24.0,
+          23.3,
+          27.4,
+          30.3,
+          30.6,
+          33.6,
+          36.3
+        ]
+      },
+      "cmr1": [
+        86.9,
+        88.6,
+        90.3,
+        89.1,
+        90.9,
+        92.1,
+        93.2,
+        93.3
+      ],
+      "toma": [
+        22.0,
+        28.0,
+        30.3,
+        26.8,
+        34.0,
+        37.6,
+        42.1,
+        40.8
+      ],
+      "uba": [
+        46.7,
+        52.1,
+        55.4,
+        51.9,
+        60.4,
+        63.5,
+        69.2,
+        67.7
+      ],
+      "benchmark": "uba",
+      "uba_level": 58.4,
+      "best_quarters": [
+        5,
+        6,
+        7
+      ],
+      "worst_quarters": [
+        0,
+        1,
+        3
+      ],
+      "summary": [
+        {
+          "platform": "Free TV",
+          "group": "traditional",
+          "r1_ya": 40.7,
+          "r1_ty": 38.9,
+          "freq_ya": 1.49,
+          "freq_ty": 1.46
+        },
+        {
+          "platform": "Radio",
+          "group": "traditional",
+          "r1_ya": 20.3,
+          "r1_ty": 16.9,
+          "freq_ya": 2.37,
+          "freq_ty": 1.9
+        },
+        {
+          "platform": "OOH",
+          "group": "traditional",
+          "r1_ya": 22.1,
+          "r1_ty": 21.2,
+          "freq_ya": 1.56,
+          "freq_ty": 1.52
+        },
+        {
+          "platform": "Meta",
+          "group": "digital",
+          "r1_ya": 41.2,
+          "r1_ty": 51.4,
+          "freq_ya": 1.8,
+          "freq_ty": 2.26
+        },
+        {
+          "platform": "YouTube",
+          "group": "digital",
+          "r1_ya": 30.7,
+          "r1_ty": 41.9,
+          "freq_ya": 1.53,
+          "freq_ty": 1.93
+        },
+        {
+          "platform": "TikTok",
+          "group": "digital",
+          "r1_ya": 24.9,
+          "r1_ty": 32.7,
+          "freq_ya": 1.67,
+          "freq_ty": 2.15
+        }
+      ]
+    },
+    "Brand Haven": {
+      "quarters": [
+        "Q1 YA",
+        "Q2 YA",
+        "Q3 YA",
+        "Q4 YA",
+        "Q1 TY",
+        "Q2 TY",
+        "Q3 TY",
+        "Q4 TY"
+      ],
+      "platforms_reach": {
+        "Free TV": [
+          52.5,
+          47.0,
+          46.7,
+          45.8,
+          41.9,
+          44.5,
+          47.3,
+          48.9
+        ],
+        "Radio": [
+          22.8,
+          22.5,
+          22.2,
+          20.8,
+          20.1,
+          18.2,
+          19.5,
+          19.4
+        ],
+        "OOH": [
+          26.1,
+          26.6,
+          25.8,
+          23.2,
+          25.6,
+          22.6,
+          23.9,
+          25.1
+        ],
+        "Meta": [
+          41.6,
+          51.1,
+          49.1,
+          57.3,
+          56.6,
+          57.0,
+          57.2,
+          57.9
+        ],
+        "YouTube": [
+          30.5,
+          30.5,
+          35.2,
+          35.1,
+          39.3,
+          45.4,
+          44.3,
+          49.6
+        ],
+        "TikTok": [
+          25.7,
+          25.2,
+          24.6,
+          27.4,
+          30.6,
+          31.3,
+          33.4,
+          35.6
+        ]
+      },
+      "cmr1": [
+        91.8,
+        92.3,
+        92.4,
+        93.4,
+        93.7,
+        94.3,
+        94.9,
+        95.8
+      ],
+      "toma": [
+        23.0,
+        23.0,
+        24.0,
+        28.0,
+        28.8,
+        35.0,
+        39.6,
+        45.1
+      ],
+      "uba": [
+        52.8,
+        51.8,
+        53.2,
+        57.8,
+        57.2,
+        62.3,
+        65.7,
+        71.6
+      ],
+      "benchmark": "uba",
+      "uba_level": 59.0,
+      "best_quarters": [
+        5,
+        6,
+        7
+      ],
+      "worst_quarters": [
+        0,
+        1,
+        2
+      ],
+      "summary": [
+        {
+          "platform": "Free TV",
+          "group": "traditional",
+          "r1_ya": 48.0,
+          "r1_ty": 45.6,
+          "freq_ya": 1.66,
+          "freq_ty": 1.6
+        },
+        {
+          "platform": "Radio",
+          "group": "traditional",
+          "r1_ya": 22.1,
+          "r1_ty": 19.3,
+          "freq_ya": 2.76,
+          "freq_ty": 2.21
+        },
+        {
+          "platform": "OOH",
+          "group": "traditional",
+          "r1_ya": 25.4,
+          "r1_ty": 24.3,
+          "freq_ya": 1.72,
+          "freq_ty": 1.66
+        },
+        {
+          "platform": "Meta",
+          "group": "digital",
+          "r1_ya": 49.8,
+          "r1_ty": 57.2,
+          "freq_ya": 2.21,
+          "freq_ty": 2.67
+        },
+        {
+          "platform": "YouTube",
+          "group": "digital",
+          "r1_ya": 32.8,
+          "r1_ty": 44.6,
+          "freq_ya": 1.59,
+          "freq_ty": 2.09
+        },
+        {
+          "platform": "TikTok",
+          "group": "digital",
+          "r1_ya": 25.7,
+          "r1_ty": 32.7,
+          "freq_ya": 1.71,
+          "freq_ty": 2.15
+        }
+      ]
+    },
+    "Brand Ivory": {
+      "quarters": [
+        "Q1 YA",
+        "Q2 YA",
+        "Q3 YA",
+        "Q4 YA",
+        "Q1 TY",
+        "Q2 TY",
+        "Q3 TY",
+        "Q4 TY"
+      ],
+      "platforms_reach": {
+        "Free TV": [
+          44.8,
+          40.6,
+          43.1,
+          42.7,
+          40.6,
+          41.8,
+          40.1,
+          40.0
+        ],
+        "Radio": [
+          20.8,
+          22.7,
+          21.9,
+          20.1,
+          18.0,
+          17.4,
+          18.7,
+          19.2
+        ],
+        "OOH": [
+          26.6,
+          25.2,
+          25.1,
+          24.4,
+          24.0,
+          26.2,
+          23.8,
+          24.5
+        ],
+        "Meta": [
+          40.7,
+          51.5,
+          54.7,
+          57.5,
+          56.0,
+          54.9,
+          60.2,
+          60.4
+        ],
+        "YouTube": [
+          29.3,
+          30.1,
+          28.2,
+          34.0,
+          40.6,
+          39.2,
+          44.3,
+          42.8
+        ],
+        "TikTok": [
+          26.6,
+          28.4,
+          28.1,
+          32.3,
+          32.6,
+          35.8,
+          37.1,
+          40.6
+        ]
+      },
+      "cmr1": [
+        90.1,
+        91.7,
+        92.2,
+        93.4,
+        93.5,
+        93.7,
+        94.8,
+        95.1
+      ],
+      "toma": [
+        24.9,
+        28.8,
+        31.8,
+        38.7,
+        40.3,
+        40.9,
+        47.2,
+        47.4
+      ],
+      "uba": [
+        58.1,
+        59.9,
+        61.2,
+        68.3,
+        68.1,
+        69.4,
+        71.8,
+        73.8
+      ],
+      "benchmark": "uba",
+      "uba_level": 66.3,
+      "best_quarters": [
+        5,
+        6,
+        7
+      ],
+      "worst_quarters": [
+        0,
+        1,
+        2
+      ],
+      "summary": [
+        {
+          "platform": "Free TV",
+          "group": "traditional",
+          "r1_ya": 42.8,
+          "r1_ty": 40.6,
+          "freq_ya": 1.54,
+          "freq_ty": 1.49
+        },
+        {
+          "platform": "Radio",
+          "group": "traditional",
+          "r1_ya": 21.4,
+          "r1_ty": 18.3,
+          "freq_ya": 2.6,
+          "freq_ty": 2.07
+        },
+        {
+          "platform": "OOH",
+          "group": "traditional",
+          "r1_ya": 25.3,
+          "r1_ty": 24.6,
+          "freq_ya": 1.71,
+          "freq_ty": 1.67
+        },
+        {
+          "platform": "Meta",
+          "group": "digital",
+          "r1_ya": 51.1,
+          "r1_ty": 57.9,
+          "freq_ya": 2.29,
+          "freq_ty": 2.75
+        },
+        {
+          "platform": "YouTube",
+          "group": "digital",
+          "r1_ya": 30.4,
+          "r1_ty": 41.7,
+          "freq_ya": 1.52,
+          "freq_ty": 1.93
+        },
+        {
+          "platform": "TikTok",
+          "group": "digital",
+          "r1_ya": 28.9,
+          "r1_ty": 36.5,
+          "freq_ya": 1.88,
+          "freq_ty": 2.53
+        }
+      ]
+    },
+    "Brand Juno": {
+      "quarters": [
+        "Q1 YA",
+        "Q2 YA",
+        "Q3 YA",
+        "Q4 YA",
+        "Q1 TY",
+        "Q2 TY",
+        "Q3 TY",
+        "Q4 TY"
+      ],
+      "platforms_reach": {
+        "Free TV": [
+          44.6,
+          49.0,
+          43.8,
+          43.2,
+          44.8,
+          40.9,
+          45.8,
+          38.8
+        ],
+        "Radio": [
+          20.8,
+          20.7,
+          19.7,
+          19.3,
+          18.2,
+          17.5,
+          16.2,
+          17.3
+        ],
+        "OOH": [
+          23.8,
+          20.1,
+          20.7,
+          20.4,
+          19.3,
+          21.3,
+          20.8,
+          17.5
+        ],
+        "Meta": [
+          32.1,
+          34.2,
+          38.8,
+          43.7,
+          44.1,
+          40.0,
+          43.5,
+          43.8
+        ],
+        "YouTube": [
+          28.7,
+          28.4,
+          30.5,
+          31.9,
+          35.7,
+          39.1,
+          42.7,
+          44.5
+        ],
+        "TikTok": [
+          26.1,
+          29.3,
+          27.8,
+          31.6,
+          32.4,
+          33.7,
+          35.9,
+          38.9
+        ]
+      },
+      "cmr1": [
+        88.0,
+        89.2,
+        89.0,
+        90.4,
+        91.2,
+        90.7,
+        92.6,
+        92.0
+      ],
+      "toma": [
+        23.6,
+        29.2,
+        27.3,
+        31.9,
+        37.2,
+        33.9,
+        43.5,
+        38.9
+      ],
+      "uba": [
+        50.3,
+        57.5,
+        54.7,
+        58.8,
+        62.9,
+        59.9,
+        69.4,
+        64.8
+      ],
+      "benchmark": "uba",
+      "uba_level": 59.8,
+      "best_quarters": [
+        4,
+        6,
+        7
+      ],
+      "worst_quarters": [
+        0,
+        1,
+        2
+      ],
+      "summary": [
+        {
+          "platform": "Free TV",
+          "group": "traditional",
+          "r1_ya": 45.1,
+          "r1_ty": 42.6,
+          "freq_ya": 1.58,
+          "freq_ty": 1.54
+        },
+        {
+          "platform": "Radio",
+          "group": "traditional",
+          "r1_ya": 20.1,
+          "r1_ty": 17.3,
+          "freq_ya": 2.35,
+          "freq_ty": 1.94
+        },
+        {
+          "platform": "OOH",
+          "group": "traditional",
+          "r1_ya": 21.2,
+          "r1_ty": 19.7,
+          "freq_ya": 1.52,
+          "freq_ty": 1.46
+        },
+        {
+          "platform": "Meta",
+          "group": "digital",
+          "r1_ya": 37.2,
+          "r1_ty": 42.9,
+          "freq_ya": 1.66,
+          "freq_ty": 1.84
+        },
+        {
+          "platform": "YouTube",
+          "group": "digital",
+          "r1_ya": 29.9,
+          "r1_ty": 40.5,
+          "freq_ya": 1.5,
+          "freq_ty": 1.88
+        },
+        {
+          "platform": "TikTok",
+          "group": "digital",
+          "r1_ya": 28.7,
+          "r1_ty": 35.2,
+          "freq_ya": 1.87,
+          "freq_ty": 2.38
+        }
+      ]
+    }
+  },
+  "brand_plans": {
+    "Brand Aster": {
+      "baseline_spend": {
+        "tv": 10681258.755242681,
+        "radio": 3449942.715502646,
+        "ooh": 2380629.858465936,
+        "meta": 10269166.329878496,
+        "yt": 6273841.634405394,
+        "tt": 3780178.7506092195
+      },
+      "recommended_spend": {
+        "tv": 10707134.030438585,
+        "radio": 2463607.48131011,
+        "ooh": 2254411.869684073,
+        "meta": 10974576.229862206,
+        "yt": 9097660.955066556,
+        "tt": 5285517.749971808
+      },
+      "awareness": {
+        "pmin": 0.39347977474619283,
+        "pmax": 0.48628723826142134,
+        "uba_base": 0.7398697658617523,
+        "uba_span": 0.0660716287760362,
+        "toma_base": 0.33294139463778855,
+        "toma_span": 0.22,
+        "uba_ceil": 0.88,
+        "toma_ceil": 0.62,
+        "benchmark": "toma"
+      }
+    },
+    "Brand Briar": {
+      "baseline_spend": {
+        "tv": 13385679.615945604,
+        "radio": 3465707.002830717,
+        "ooh": 2090133.271209931,
+        "meta": 5951918.068200844,
+        "yt": 5649707.35198527,
+        "tt": 8767033.364724308
+      },
+      "recommended_spend": {
+        "tv": 12003565.62274942,
+        "radio": 2395046.847552511,
+        "ooh": 1914685.2782611724,
+        "meta": 7443729.442796365,
+        "yt": 8918398.948499229,
+        "tt": 10576520.827060899
+      },
+      "awareness": {
+        "pmin": 0.4199733105964467,
+        "pmax": 0.4668767449238579,
+        "uba_base": 0.797621397036009,
+        "uba_span": 0.03430823163019506,
+        "toma_base": 0.35892962866620404,
+        "toma_span": 0.22,
+        "uba_ceil": 0.88,
+        "toma_ceil": 0.62,
+        "benchmark": "toma"
+      }
+    },
+    "Brand Cedar": {
+      "baseline_spend": {
+        "tv": 10527152.475523926,
+        "radio": 2117587.5496240794,
+        "ooh": 1711136.426622593,
+        "meta": 6756577.124326176,
+        "yt": 5054361.226937411,
+        "tt": 3688904.6121384837
+      },
+      "recommended_spend": {
+        "tv": 9418527.149330081,
+        "radio": 1644420.1231875496,
+        "ooh": 1670311.1125713447,
+        "meta": 10562446.830853764,
+        "yt": 9011746.651006112,
+        "tt": 6092273.435492706
+      },
+      "awareness": {
+        "pmin": 0.35852101840101525,
+        "pmax": 0.44028259835025385,
+        "uba_base": 0.7908009521778082,
+        "uba_span": 0.03805947630220548,
+        "toma_base": 0.3558604284800137,
+        "toma_span": 0.22,
+        "uba_ceil": 0.88,
+        "toma_ceil": 0.62,
+        "benchmark": "toma"
+      }
+    },
+    "Brand Dune": {
+      "baseline_spend": {
+        "tv": 12075702.390745474,
+        "radio": 2822362.588488353,
+        "ooh": 2201723.691841252,
+        "meta": 5534562.6141817095,
+        "yt": 9699597.01421766,
+        "tt": 3543865.191288103
+      },
+      "recommended_spend": {
+        "tv": 10629672.637440301,
+        "radio": 2328799.196926359,
+        "ooh": 1883074.4924331943,
+        "meta": 7402451.008861539,
+        "yt": 16721309.120613545,
+        "tt": 4945327.122279525
+      },
+      "awareness": {
+        "pmin": 0.4146430837563452,
+        "pmax": 0.4680479854060914,
+        "uba_base": 0.7588338600226137,
+        "uba_span": 0.05564137698756248,
+        "toma_base": 0.3414752370101762,
+        "toma_span": 0.22,
+        "uba_ceil": 0.88,
+        "toma_ceil": 0.62,
+        "benchmark": "toma"
+      }
+    },
+    "Brand Ember": {
+      "baseline_spend": {
+        "tv": 9713012.760215882,
+        "radio": 2211486.2586202538,
+        "ooh": 1591046.6075829933,
+        "meta": 6067381.607880268,
+        "yt": 4680851.737400845,
+        "tt": 3195734.1531459815
+      },
+      "recommended_spend": {
+        "tv": 8795359.927778287,
+        "radio": 1644420.1231875496,
+        "ooh": 1395032.7747429924,
+        "meta": 9151468.954923507,
+        "yt": 7325413.472328259,
+        "tt": 5120356.5751906475
+      },
+      "awareness": {
+        "pmin": 0.34566786960659895,
+        "pmax": 0.4196810358502538,
+        "uba_base": 0.5093301377457838,
+        "uba_span": 0.1928684242398189,
+        "toma_base": 0.22919856198560273,
+        "toma_span": 0.22,
+        "uba_ceil": 0.88,
+        "toma_ceil": 0.62,
+        "benchmark": "uba"
+      }
+    },
+    "Brand Fern": {
+      "baseline_spend": {
+        "tv": 9641668.838080503,
+        "radio": 2555373.3495957726,
+        "ooh": 1220068.450667649,
+        "meta": 4885745.843507192,
+        "yt": 3869539.915005225,
+        "tt": 2791122.988249281
+      },
+      "recommended_spend": {
+        "tv": 9653529.881088415,
+        "radio": 1749603.2219941386,
+        "ooh": 1062728.5028269286,
+        "meta": 7177216.303513693,
+        "yt": 8101700.732149699,
+        "tt": 5007558.029718543
+      },
+      "awareness": {
+        "pmin": 0.3228836056472081,
+        "pmax": 0.4116577569796954,
+        "uba_base": 0.5387996564747913,
+        "uba_span": 0.1766601889388648,
+        "toma_base": 0.24245984541365612,
+        "toma_span": 0.22,
+        "uba_ceil": 0.88,
+        "toma_ceil": 0.62,
+        "benchmark": "uba"
+      }
+    },
+    "Brand Grove": {
+      "baseline_spend": {
+        "tv": 8861759.10887358,
+        "radio": 2684569.621036439,
+        "ooh": 1571708.1575102273,
+        "meta": 5651026.699861909,
+        "yt": 4380747.781258697,
+        "tt": 3358365.2311811284
+      },
+      "recommended_spend": {
+        "tv": 8130518.565382563,
+        "radio": 1783840.7245622126,
+        "ooh": 1618436.720476963,
+        "meta": 10349577.951946633,
+        "yt": 8447351.750672668,
+        "tt": 5741887.461525663
+      },
+      "awareness": {
+        "pmin": 0.33051788546954314,
+        "pmax": 0.412956733819797,
+        "uba_base": 0.4641990759019735,
+        "uba_span": 0.2176905082539146,
+        "toma_base": 0.2088895841558881,
+        "toma_span": 0.22,
+        "uba_ceil": 0.88,
+        "toma_ceil": 0.62,
+        "benchmark": "uba"
+      }
+    },
+    "Brand Haven": {
+      "baseline_spend": {
+        "tv": 11733184.311251748,
+        "radio": 3663493.164858123,
+        "ooh": 2206935.4712132923,
+        "meta": 8043401.263495987,
+        "yt": 4971268.7094827695,
+        "tt": 3291006.18610736
+      },
+      "recommended_spend": {
+        "tv": 10982189.807893898,
+        "radio": 2347498.5172712463,
+        "ooh": 1874130.0013477136,
+        "meta": 11609229.135127319,
+        "yt": 9153940.988811774,
+        "tt": 5251087.955985886
+      },
+      "awareness": {
+        "pmin": 0.3955040847081218,
+        "pmax": 0.4722901729060913,
+        "uba_base": 0.5216483684084927,
+        "uba_span": 0.186093397375329,
+        "toma_base": 0.23474176578382172,
+        "toma_span": 0.22,
+        "uba_ceil": 0.88,
+        "toma_ceil": 0.62,
+        "benchmark": "uba"
+      }
+    },
+    "Brand Ivory": {
+      "baseline_spend": {
+        "tv": 9465157.33629885,
+        "radio": 3327510.0199488313,
+        "ooh": 2125016.3330026674,
+        "meta": 8680457.706578061,
+        "yt": 4298675.89331351,
+        "tt": 3899378.4363604463
+      },
+      "recommended_spend": {
+        "tv": 8718367.420510193,
+        "radio": 2185409.122320271,
+        "ooh": 2007714.4978077412,
+        "meta": 13517531.078145782,
+        "yt": 8007372.20325931,
+        "tt": 7700421.9570039725
+      },
+      "awareness": {
+        "pmin": 0.36525269670050764,
+        "pmax": 0.43556091370558375,
+        "uba_base": 0.5749850065469658,
+        "uba_span": 0.1567582463991688,
+        "toma_base": 0.25874325294613465,
+        "toma_span": 0.22,
+        "uba_ceil": 0.88,
+        "toma_ceil": 0.62,
+        "benchmark": "uba"
+      }
+    },
+    "Brand Juno": {
+      "baseline_spend": {
+        "tv": 10552701.50785958,
+        "radio": 2775419.340503595,
+        "ooh": 1583288.862990236,
+        "meta": 4660170.798226261,
+        "yt": 4298675.89331351,
+        "tt": 3908026.401298555
+      },
+      "recommended_spend": {
+        "tv": 9570749.583248708,
+        "radio": 1898140.0782674928,
+        "ooh": 1329257.254631219,
+        "meta": 6897306.329851517,
+        "yt": 7648093.890418281,
+        "tt": 6699230.435641018
+      },
+      "awareness": {
+        "pmin": 0.3445513166243655,
+        "pmax": 0.41447414340101524,
+        "uba_base": 0.4987478749514003,
+        "uba_span": 0.19868866877672983,
+        "toma_base": 0.22443654372813016,
+        "toma_span": 0.22,
+        "uba_ceil": 0.88,
+        "toma_ceil": 0.62,
+        "benchmark": "uba"
+      }
+    }
+  },
+  "consumption_series": {
+    "tv": [
+      {
+        "q": "Q1 YA",
+        "reach": 80.6,
+        "minutes": 128.0
+      },
+      {
+        "q": "Q2 YA",
+        "reach": 81.7,
+        "minutes": 126.1
+      },
+      {
+        "q": "Q3 YA",
+        "reach": 81.3,
+        "minutes": 124.3
+      },
+      {
+        "q": "Q4 YA",
+        "reach": 80.2,
+        "minutes": 122.4
+      },
+      {
+        "q": "Q1 TY",
+        "reach": 76.9,
+        "minutes": 120.6
+      },
+      {
+        "q": "Q2 TY",
+        "reach": 75.5,
+        "minutes": 118.7
+      },
+      {
+        "q": "Q3 TY",
+        "reach": 73.3,
+        "minutes": 116.9
+      },
+      {
+        "q": "Q4 TY",
+        "reach": 70.5,
+        "minutes": 115.0
+      }
+    ],
+    "radio": [
+      {
+        "q": "Q1 YA",
+        "reach": 29.1,
+        "minutes": 40.0
+      },
+      {
+        "q": "Q2 YA",
+        "reach": 29.5,
+        "minutes": 39.3
+      },
+      {
+        "q": "Q3 YA",
+        "reach": 28.8,
+        "minutes": 38.6
+      },
+      {
+        "q": "Q4 YA",
+        "reach": 28.9,
+        "minutes": 37.9
+      },
+      {
+        "q": "Q1 TY",
+        "reach": 28.1,
+        "minutes": 37.1
+      },
+      {
+        "q": "Q2 TY",
+        "reach": 26.8,
+        "minutes": 36.4
+      },
+      {
+        "q": "Q3 TY",
+        "reach": 26.2,
+        "minutes": 35.7
+      },
+      {
+        "q": "Q4 TY",
+        "reach": 25.1,
+        "minutes": 35.0
+      }
+    ],
+    "ooh": [
+      {
+        "q": "Q1 YA",
+        "reach": 43.9,
+        "minutes": 12.0
+      },
+      {
+        "q": "Q2 YA",
+        "reach": 44.3,
+        "minutes": 12.0
+      },
+      {
+        "q": "Q3 YA",
+        "reach": 43.7,
+        "minutes": 12.0
+      },
+      {
+        "q": "Q4 YA",
+        "reach": 43.6,
+        "minutes": 12.0
+      },
+      {
+        "q": "Q1 TY",
+        "reach": 42.2,
+        "minutes": 12.0
+      },
+      {
+        "q": "Q2 TY",
+        "reach": 40.6,
+        "minutes": 12.0
+      },
+      {
+        "q": "Q3 TY",
+        "reach": 39.5,
+        "minutes": 12.0
+      },
+      {
+        "q": "Q4 TY",
+        "reach": 38.0,
+        "minutes": 12.0
+      }
+    ],
+    "meta": [
+      {
+        "q": "Q1 YA",
+        "reach": 70.7,
+        "minutes": 52.0
+      },
+      {
+        "q": "Q2 YA",
+        "reach": 73.0,
+        "minutes": 54.0
+      },
+      {
+        "q": "Q3 YA",
+        "reach": 75.1,
+        "minutes": 56.0
+      },
+      {
+        "q": "Q4 YA",
+        "reach": 76.9,
+        "minutes": 58.0
+      },
+      {
+        "q": "Q1 TY",
+        "reach": 77.4,
+        "minutes": 60.0
+      },
+      {
+        "q": "Q2 TY",
+        "reach": 78.0,
+        "minutes": 62.0
+      },
+      {
+        "q": "Q3 TY",
+        "reach": 77.8,
+        "minutes": 64.0
+      },
+      {
+        "q": "Q4 TY",
+        "reach": 77.7,
+        "minutes": 66.0
+      }
+    ],
+    "yt": [
+      {
+        "q": "Q1 YA",
+        "reach": 64.9,
+        "minutes": 60.0
+      },
+      {
+        "q": "Q2 YA",
+        "reach": 68.0,
+        "minutes": 63.1
+      },
+      {
+        "q": "Q3 YA",
+        "reach": 70.0,
+        "minutes": 66.3
+      },
+      {
+        "q": "Q4 YA",
+        "reach": 71.5,
+        "minutes": 69.4
+      },
+      {
+        "q": "Q1 TY",
+        "reach": 71.7,
+        "minutes": 72.6
+      },
+      {
+        "q": "Q2 TY",
+        "reach": 71.9,
+        "minutes": 75.7
+      },
+      {
+        "q": "Q3 TY",
+        "reach": 72.0,
+        "minutes": 78.9
+      },
+      {
+        "q": "Q4 TY",
+        "reach": 71.7,
+        "minutes": 82.0
+      }
+    ],
+    "tt": [
+      {
+        "q": "Q1 YA",
+        "reach": 50.0,
+        "minutes": 34.0
+      },
+      {
+        "q": "Q2 YA",
+        "reach": 52.1,
+        "minutes": 37.7
+      },
+      {
+        "q": "Q3 YA",
+        "reach": 53.5,
+        "minutes": 41.4
+      },
+      {
+        "q": "Q4 YA",
+        "reach": 54.0,
+        "minutes": 45.1
+      },
+      {
+        "q": "Q1 TY",
+        "reach": 54.7,
+        "minutes": 48.9
+      },
+      {
+        "q": "Q2 TY",
+        "reach": 54.5,
+        "minutes": 52.6
+      },
+      {
+        "q": "Q3 TY",
+        "reach": 54.8,
+        "minutes": 56.3
+      },
+      {
+        "q": "Q4 TY",
+        "reach": 55.0,
+        "minutes": 60.0
+      }
+    ]
+  },
+  "segments": {
+    "shares": {
+      "affluent": 0.28,
+      "mass": 0.72
+    },
+    "affluent": {
+      "ya": {
+        "reach": {
+          "tv": 0.8,
+          "radio": 0.3,
+          "ooh": 0.55,
+          "meta": 0.72,
+          "yt": 0.68,
+          "tt": 0.4
+        },
+        "som": {
+          "tv": 0.36921881072677804,
+          "radio": 0.04372328021764477,
+          "ooh": 0.03206373882627283,
+          "meta": 0.2098717450446949,
+          "yt": 0.25767586474931986,
+          "tt": 0.08744656043528953
+        }
+      },
+      "ty": {
+        "reach": {
+          "tv": 0.74,
+          "radio": 0.27,
+          "ooh": 0.55,
+          "meta": 0.78,
+          "yt": 0.76,
+          "tt": 0.52
+        },
+        "som": {
+          "tv": 0.23280608232106967,
+          "radio": 0.030673774359870662,
+          "ooh": 0.028838591278510878,
+          "meta": 0.2522065891811588,
+          "yt": 0.3055142882111334,
+          "tt": 0.14996067464825658
+        }
+      }
+    },
+    "mass": {
+      "ya": {
+        "reach": {
+          "tv": 0.9,
+          "radio": 0.34,
+          "ooh": 0.47,
+          "meta": 0.34,
+          "yt": 0.3,
+          "tt": 0.22
+        },
+        "som": {
+          "tv": 0.6710482712912846,
+          "radio": 0.07886888324312383,
+          "ooh": 0.031149895062410244,
+          "meta": 0.08638020545675468,
+          "yt": 0.09610074008615929,
+          "tt": 0.03645200486026731
+        }
+      },
+      "ty": {
+        "reach": {
+          "tv": 0.86,
+          "radio": 0.3,
+          "ooh": 0.46,
+          "meta": 0.56,
+          "yt": 0.55,
+          "tt": 0.48
+        },
+        "som": {
+          "tv": 0.408085792920186,
+          "radio": 0.045553762930625415,
+          "ooh": 0.02619341368510961,
+          "meta": 0.17538198728290785,
+          "yt": 0.20356837809623235,
+          "tt": 0.14121666508493877
+        }
+      }
+    },
+    "all": {
+      "ya": {
+        "reach": {
+          "tv": 0.872,
+          "radio": 0.3288,
+          "ooh": 0.4924,
+          "meta": 0.4464,
+          "yt": 0.4064,
+          "tt": 0.2704
+        },
+        "som": {
+          "tv": 0.5785155618345688,
+          "radio": 0.06809419654635358,
+          "ooh": 0.031430054723869984,
+          "meta": 0.12423935522855514,
+          "yt": 0.1456352820024,
+          "tt": 0.05208554966425246
+        }
+      },
+      "ty": {
+        "reach": {
+          "tv": 0.8264,
+          "radio": 0.2916,
+          "ooh": 0.4852,
+          "meta": 0.6216,
+          "yt": 0.6088,
+          "tt": 0.4911999999999999
+        },
+        "som": {
+          "tv": 0.3560405831699207,
+          "radio": 0.041135498411592225,
+          "ooh": 0.02697883729292315,
+          "meta": 0.19819325566136706,
+          "yt": 0.23383883128774094,
+          "tt": 0.143812994176456
+        }
+      }
+    }
+  }
+};
+const U = DATA.meta.universe, EF = DATA.meta.effective_freq, CUR = DATA.meta.currency;
+const P = DATA.platforms;                       // platform params (keyed list)
+const byKey = Object.fromEntries(P.map(p=>[p.key,p]));
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- model (mirrors scripts/01_generate_data.py) ---------- */
+function nbdPmf(r, lam, nmax){
+  if(lam<=0){const a=new Array(nmax+1).fill(0);a[0]=1;return a;}
+  const p=new Array(nmax+1).fill(0);
+  p[0]=Math.pow(r/(r+lam), r);
+  const ratio=lam/(lam+r);
+  for(let n=1;n<=nmax;n++) p[n]=p[n-1]*((r+n-1)/n)*ratio;
+  return p;
+}
+function platformReach(grp, p, nmax=40){
+  const cover=p.cover_max;
+  if(grp<=0||cover<=0) return {r1:0,r2:0,r3:0,avg_freq:0,grp:grp};
+  const lam=(grp/100)/cover;
+  const pmf=nbdPmf(p.r, lam, nmax);
+  const rAt=k=>{let below=0;for(let n=0;n<k;n++)below+=pmf[n];return cover*(1-below);};
+  const r1=rAt(1);
+  return {r1:r1, r2:rAt(2), r3:rAt(3), avg_freq:r1>0?(grp/100)/r1:0, grp:grp};
+}
+const cpp=cpm=>cpm*U/100000;
+const grpFromSpend=(s,cpm)=>s>0? s/cpp(cpm):0;
+function sainsbury(rs){let pr=1;for(const r of rs)pr*=(1-r);return 1-pr;}
+
+function planOutcomes(spendByKey){
+  const per={}; const r1s=[],r3s=[]; let totGrp=0,totSpend=0,aiTy=0,aiYa=0;
+  for(const p of P){
+    const spend=spendByKey[p.key]||0;
+    let grp=grpFromSpend(spend,p.cpm); if(grp>p.grp_max)grp=p.grp_max;
+    const rr=platformReach(grp,p);
+    per[p.key]={name:p.name,group:p.group,spend:spend,grp:grp,
+                r1:rr.r1,r3:rr.r3,avg_freq:rr.avg_freq,cover:p.cover_max};
+    r1s.push(rr.r1); r3s.push(rr.r3); totGrp+=grp; totSpend+=spend;
+    aiTy+=rr.r1*p.som_ty; aiYa+=rr.r1*p.som_ya;
+  }
+  const cmr1=sainsbury(r1s), cmr3=sainsbury(r3s);
+  return {per, cmr1, cmr3, blended_freq: cmr1>0?(totGrp/100)/cmr1:0,
+          total_grp:totGrp, total_spend:totSpend,
+          awareness_index:aiTy*100, awareness_index_ya:aiYa*100};
+}
+/* awareness reference, recomputed per selected brand context */
+let planBrand="all";
+let curBaseline=DATA.baseline_spend, curRecommended=DATA.recommended_spend;
+let BASE_OUT=planOutcomes(curBaseline);
+let REF_YA=BASE_OUT.awareness_index_ya;
+function setPlanContext(brand){
+  planBrand=brand;
+  if(brand==="all"){ curBaseline=DATA.baseline_spend; curRecommended=DATA.recommended_spend; }
+  else { curBaseline=DATA.brand_plans[brand].baseline_spend;
+         curRecommended=DATA.brand_plans[brand].recommended_spend; }
+  BASE_OUT=planOutcomes(curBaseline);
+  REF_YA=BASE_OUT.awareness_index_ya;
+}
+const growthVsYa = o => REF_YA>0 ? (o.awareness_index/REF_YA-1)*100 : 0;
+const growthVsDoNothing = o => BASE_OUT.awareness_index>0 ?
+      (o.awareness_index/BASE_OUT.awareness_index-1)*100 : 0;
+
+/* ---------- formatting ---------- */
+const pct=(x,d=1)=>x.toFixed(d)+"%";
+const money=v=>{ // compact PHP
+  if(v>=1e6) return CUR+" "+(v/1e6).toFixed(1)+"M";
+  if(v>=1e3) return CUR+" "+(v/1e3).toFixed(0)+"k";
+  return CUR+" "+v.toFixed(0);
+};
+const people=x=>{const n=x*U; return n>=1e6?(n/1e6).toFixed(1)+"M people":(n/1e3).toFixed(0)+"k people";};
+const col=g=>g==="digital"?"var(--digi)":"var(--trad-deep)";
+
+/* ================= TAB SWITCHING ================= */
+const panes={1:document.getElementById("pane-1"),2:document.getElementById("pane-2")};
+const tabbtns={1:document.getElementById("tabbtn-1"),2:document.getElementById("tabbtn-2")};
+function showTab(n){
+  for(const k of [1,2]){
+    const on=(+k===+n);
+    panes[k].classList.toggle("hidden",!on);
+    tabbtns[k].setAttribute("aria-selected", on?"true":"false");
+  }
+  if(+n===2) renderPlan();
+}
+tabbtns[1].onclick=()=>showTab(1); tabbtns[2].onclick=()=>showTab(2);
+
+/* ================= TAB 1: SHARE OF MIND SLOPE ================= */
+let somSeg="all";
+function renderSlope(){
+  const seg=DATA.segments[somSeg];
+  const svg=document.getElementById("slope");
+  const W=640,H=380, xYA=150,xTY=490, top=34,bot=336;
+  // collect som for both periods
+  const rows=P.map(p=>({p, ya:seg.ya.som[p.key]*100, ty:seg.ty.som[p.key]*100}));
+  const maxv=Math.max(...rows.flatMap(r=>[r.ya,r.ty]))*1.08;
+  const y=v=>bot-(v/maxv)*(bot-top);
+  let s=`
+    <line x1="${xYA}" y1="${top-8}" x2="${xYA}" y2="${bot+6}" stroke="var(--line)"/>
+    <line x1="${xTY}" y1="${top-8}" x2="${xTY}" y2="${bot+6}" stroke="var(--line)"/>
+    <text class="axislab" x="${xYA}" y="${bot+24}" text-anchor="middle">Year ago</text>
+    <text class="axislab" x="${xTY}" y="${bot+24}" text-anchor="middle">This year</text>`;
+  // sort to reduce label overlap (place labels by ty value)
+  const labelled=[...rows].sort((a,b)=>b.ty-a.ty);
+  rows.forEach(r=>{
+    const c=col(r.p.group), o=r.p.group==="digital"?1:.85;
+    s+=`<line class="slope-line" x1="${xYA}" y1="${y(r.ya)}" x2="${xTY}" y2="${y(r.ty)}"
+          stroke="${c}" opacity="${o}"/>
+        <circle class="slope-pt" cx="${xYA}" cy="${y(r.ya)}" r="4" fill="${c}"/>
+        <circle class="slope-pt" cx="${xTY}" cy="${y(r.ty)}" r="4" fill="${c}"/>
+        <text class="plat-lab" x="${xYA-12}" y="${y(r.ya)+4}" text-anchor="end"
+          fill="var(--mute)">${r.ya.toFixed(0)}</text>`;
+  });
+  // right-side labels, nudged to avoid collisions
+  let lastY=-99;
+  labelled.forEach(r=>{
+    let ly=y(r.ty); if(ly-lastY<15) ly=lastY+15; lastY=ly;
+    const c=col(r.p.group);
+    s+=`<text class="plat-lab" x="${xTY+12}" y="${ly+4}" fill="${c}" font-weight="700">
+          ${r.p.name} ${r.ty.toFixed(0)}</text>`;
+  });
+  svg.innerHTML=s;
+}
+document.querySelectorAll("#seg-som button").forEach(b=>{
+  b.onclick=()=>{somSeg=b.dataset.seg;
+    document.querySelectorAll("#seg-som button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+    renderSlope();};
+});
+
+/* ================= TAB 1: REACH BY PLATFORM ================= */
+let reachSeg="all";
+function renderReach(){
+  const seg=DATA.segments[reachSeg];
+  const host=document.getElementById("reach-bars");
+  const maxv=Math.max(...P.map(p=>Math.max(seg.ya.reach[p.key],seg.ty.reach[p.key])))*100*1.05;
+  host.innerHTML=P.map(p=>{
+    const ya=seg.ya.reach[p.key]*100, ty=seg.ty.reach[p.key]*100, d=ty-ya;
+    const c=col(p.group);
+    const dCls=d>0.5?"delta-up":(d<-0.5?"delta-down":"delta-hold");
+    const sign=d>0?"+":"";
+    return `<div class="rb-row">
+      <div class="rb-name"><span class="dot ${p.group==='digital'?'digi':'trad'}"></span>${p.name}</div>
+      <div>
+        <div class="rb-track">
+          <div class="rb-bar rb-ya" style="width:${(ya/maxv*100).toFixed(1)}%">${ya.toFixed(0)}</div>
+          <div class="rb-bar" style="width:${(ty/maxv*100).toFixed(1)}%;background:${c}">${ty.toFixed(0)}</div>
+        </div>
+        <span class="rb-delta ${dCls}">${sign}${d.toFixed(0)} ppt</span>
+      </div>
+    </div>`;
+  }).join("");
+  // narrative line about affluent vs mass
+  const note=document.getElementById("reach-read");
+  if(reachSeg==="affluent")
+    note.innerHTML="Affluent sit high on digital already (Meta and YouTube near three-quarters reach), so the year-on-year gains here are modest. Digital indexes affluent.";
+  else if(reachSeg==="mass")
+    note.innerHTML="Mass starts low on digital but climbs the fastest, the steepest reach growth on the page. The reach upside in digital is a mass story, even though levels still trail affluent.";
+  else
+    note.innerHTML="Traditional reach holds and slips slightly; digital reach climbs across the board. Toggle Affluent and Mass to see who drives the digital growth.";
+}
+document.querySelectorAll("#seg-reach button").forEach(b=>{
+  b.onclick=()=>{reachSeg=b.dataset.seg;
+    document.querySelectorAll("#seg-reach button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+    renderReach();};
+});
+
+/* ================= TAB 1: BRAND TREND ================= */
+function renderBrand(){
+  const name=document.getElementById("brand-pick").value;
+  const bs=DATA.brand_series[name];
+  const Q=bs.quarters, svg=document.getElementById("brand-chart");
+  const W=640,H=320, L=44,R=18,T=20,B=46;
+  const x=i=>L+(W-L-R)*i/(Q.length-1);
+  const y=v=>T+(H-T-B)*(1-v/100);
+  const UBA_C="#0e9f6e", TOMA_C="var(--digi)", NET_C="var(--trad)";
+  const benchUba=bs.benchmark==="uba";
+  let s="";
+  [0,25,50,75,100].forEach(v=>{
+    s+=`<line x1="${L}" y1="${y(v)}" x2="${W-R}" y2="${y(v)}" stroke="var(--line)"/>
+        <text class="axislab" x="${L-8}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
+  });
+  Q.forEach((q,i)=>{ s+=`<text class="axislab" x="${x(i)}" y="${H-B+22}" text-anchor="middle"
+      fill="${i>=4?'var(--digi-deep)':'var(--mute)'}">${q}</text>`; });
+  const line=(arr,color,w,dash)=>{
+    let d=arr.map((v,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
+    return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}"
+      ${dash?`stroke-dasharray="${dash}"`:""} stroke-linejoin="round" stroke-linecap="round"/>`;
+  };
+  const benchArr=benchUba?bs.uba:bs.toma, benchColor=benchUba?UBA_C:TOMA_C;
+  // highlight best quarters (halo) on the benchmark line
+  bs.best_quarters.forEach(i=>{
+    s+=`<circle cx="${x(i)}" cy="${y(benchArr[i])}" r="10" fill="${benchColor}" opacity="0.16"/>`;
+  });
+  // net reach (flat, high) faint; then the non-benchmark awareness line; benchmark on top, thick
+  s+=line(bs.cmr1, NET_C, 2, "5 4");
+  s+=line(benchUba?bs.toma:bs.uba, benchUba?TOMA_C:UBA_C, 2);
+  s+=line(benchArr, benchColor, 3.5);
+  benchArr.forEach((v,i)=>{
+    const best=bs.best_quarters.includes(i);
+    s+=`<circle cx="${x(i)}" cy="${y(v)}" r="${best?4.5:2.6}"
+        fill="${best?benchColor:'#fff'}" stroke="${benchColor}" stroke-width="2"/>`;
+  });
+  svg.innerHTML=s;
+  const nm=benchUba?"unaided":"top-of-mind";
+  const why=benchUba
+    ? "unaided awareness still has headroom, so it is the benchmark"
+    : "unaided awareness has plateaued near "+Math.round(bs.uba_level)+"%, so top-of-mind is the benchmark";
+  document.getElementById("brand-best").innerHTML=
+    "Benchmark: <b>"+(benchUba?"Unaided":"Top-of-mind")+"</b> ("+why+"). Best three quarters on "
+    +nm+" awareness: "+bs.best_quarters.map(i=>Q[i]).join(", ")
+    +" - their reach mix is what the recommended plan targets. Net reach stayed flat near "
+    +Math.round(Math.max(...bs.cmr1))+"% throughout, which is why the headline never flagged the gap.";
+  const tb=document.querySelector("#brand-table tbody");
+  tb.innerHTML=bs.summary.map(r=>`<tr>
+      <td><span class="tag ${r.group==='digital'?'digi':'trad'}">${r.group==='digital'?'DIG':'TRAD'}</span>
+        &nbsp;${r.platform}</td>
+      <td class="num">${r.r1_ya.toFixed(0)}</td><td class="num">${r.r1_ty.toFixed(0)}</td>
+      <td class="num">${r.freq_ya.toFixed(1)}</td><td class="num">${r.freq_ty.toFixed(1)}</td>
+    </tr>`).join("");
+}
+
+/* ================= TAB 2: PLANNER ================= */
+const spend={};                        // current spend per key
+P.forEach(p=> spend[p.key]=curRecommended[p.key]||0);
+const SMAX={};                         // slider max per platform = spend at grp ceiling
+P.forEach(p=> SMAX[p.key]=p.grp_max*cpp(p.cpm));
+
+function buildSliders(){
+  const host=document.getElementById("slider-rows");
+  host.innerHTML=P.map(p=>`
+    <div class="srow" data-k="${p.key}">
+      <div class="srow-top">
+        <span class="srow-name"><span class="dot ${p.group==='digital'?'digi':'trad'}"></span>${p.name}</span>
+        <span class="srow-val" id="sv-${p.key}"></span>
+      </div>
+      <input type="range" class="${p.group==='traditional'?'trad':''}" id="sl-${p.key}"
+        min="0" max="${Math.round(SMAX[p.key])}" step="100000" value="${Math.round(spend[p.key])}"
+        aria-label="${p.name} spend">
+      <div class="srow-readout" id="sr-${p.key}"></div>
+    </div>`).join("");
+  P.forEach(p=>{
+    document.getElementById("sl-"+p.key).addEventListener("input",e=>{
+      spend[p.key]=+e.target.value; renderPlan();
+    });
+  });
+}
+function setPreset(which){
+  P.forEach(p=>{
+    let v=0;
+    if(which==="baseline") v=curBaseline[p.key]||0;
+    else if(which==="recommended") v=curRecommended[p.key]||0;
+    else v=0;
+    v=Math.min(v,SMAX[p.key]);
+    spend[p.key]=v;
+    const sl=document.getElementById("sl-"+p.key); if(sl) sl.value=Math.round(v);
+  });
+  renderPlan();
+}
+document.querySelectorAll(".preset").forEach(b=> b.onclick=()=>setPreset(b.dataset.preset));
+
+/* brand filter: switch the plan context, load that brand's recommended plan */
+function digitalShares(spendDict){
+  const o=planOutcomes(spendDict);
+  const r={meta:o.per.meta.r1, yt:o.per.yt.r1, tt:o.per.tt.r1};
+  const tot=(r.meta+r.yt+r.tt)||1;
+  return {meta:r.meta/tot, yt:r.yt/tot, tt:r.tt/tot};
+}
+const AVG_DIG=(function(){
+  const acc={meta:0,yt:0,tt:0};
+  DATA.brands.forEach(b=>{const s=digitalShares(DATA.brand_plans[b].recommended_spend);
+    acc.meta+=s.meta; acc.yt+=s.yt; acc.tt+=s.tt;});
+  const n=DATA.brands.length||1;
+  return {meta:acc.meta/n, yt:acc.yt/n, tt:acc.tt/n};
+})();
+function brandRationale(brand){
+  if(brand==="all")
+    return "Category plan: TV held, digital scaled, ranked Meta, YouTube, TikTok.";
+  const s=digitalShares(DATA.brand_plans[brand].recommended_spend);
+  const nm={meta:"Meta",yt:"YouTube",tt:"TikTok"};
+  const lean=["meta","yt","tt"].sort((a,b)=>(s[b]-AVG_DIG[b])-(s[a]-AVG_DIG[a]))[0];
+  return "Built from "+brand+"'s historical highs, weighted by share of mind. Over-indexes on "+nm[lean]+".";
+}
+function applyBrand(brand){
+  setPlanContext(brand);
+  P.forEach(p=> spend[p.key]=curRecommended[p.key]||0);
+  P.forEach(p=>{const sl=document.getElementById("sl-"+p.key); if(sl) sl.value=Math.round(spend[p.key]);});
+  document.getElementById("plan-brand-note").textContent=brandRationale(brand);
+  renderPlan();
+}
+
+/* project unaided / top-of-mind awareness from a plan's media pressure */
+function projectAwareness(model, o){
+  const span=(model.pmax-model.pmin)||1;
+  const pe=Math.max(0, Math.min(1.35, (o.awareness_index/100 - model.pmin)/span));
+  return {uba: Math.min(model.uba_ceil, model.uba_base+model.uba_span*pe)*100,
+          toma:Math.min(model.toma_ceil, model.toma_base+model.toma_span*pe)*100};
+}
+
+function renderPlan(){
+  const o=planOutcomes(spend);
+  // sliders readouts
+  P.forEach(p=>{
+    const per=o.per[p.key];
+    document.getElementById("sv-"+p.key).textContent=money(spend[p.key]);
+    const share=o.total_spend>0?(spend[p.key]/o.total_spend*100):0;
+    document.getElementById("sr-"+p.key).innerHTML=
+      `<span>GRP <b>${per.grp.toFixed(0)}</b></span>`+
+      `<span>pop reach <b>${pct(per.r1*100,0)}</b></span>`+
+      `<span>freq <b>${per.avg_freq.toFixed(1)}</b></span>`+
+      `<span>${share.toFixed(0)}% of spend</span>`;
+  });
+  document.getElementById("budget-read").textContent="Total "+money(o.total_spend);
+
+  // per-platform delivery table
+  document.getElementById("plan-rows").innerHTML=P.map(p=>{
+    const per=o.per[p.key]; const inP=per.cover>0?per.r1/per.cover:0;
+    const c=col(p.group);
+    return `<tr>
+      <td><span class="dot ${p.group==='digital'?'digi':'trad'}"></span>&nbsp;${p.name}</td>
+      <td class="num">${per.grp.toFixed(0)}</td>
+      <td class="num">${pct(per.r1*100,0)}</td>
+      <td class="num">${pct(inP*100,0)}</td>
+      <td class="num">${pct(per.r3*100,0)}</td>
+      <td class="num">${per.avg_freq.toFixed(1)}</td>
+      <td><div class="meterbar"><i style="width:${(per.r1*100).toFixed(1)}%;background:${c}"></i>
+        <span class="ceil" style="left:${(per.cover*100).toFixed(1)}%"></span></div></td>
+    </tr>`;
+  }).join("");
+
+  // CMR signature
+  document.getElementById("cmr-big").textContent=pct(o.cmr1*100,1);
+  document.getElementById("cmr-people").textContent=people(o.cmr1)+" reached at least once";
+  // Sainsbury formula, live
+  const terms=P.filter(p=>o.per[p.key].r1>0.001).map(p=>{
+    const per=o.per[p.key];
+    return `<span class="fterm ${p.group==='digital'?'digi':''}">1&minus;${(per.r1).toFixed(2)}</span>`;
+  });
+  document.getElementById("cmr-formula").innerHTML=
+    `CMR = 1 &minus; ( ${terms.join(" &times; ")} ) = <span class="fans">${pct(o.cmr1*100,1)}</span>`;
+
+  // metrics
+  document.getElementById("m-cmr3").innerHTML=pct(o.cmr3*100,1)+" <small>net</small>";
+  document.getElementById("m-freq").innerHTML=o.blended_freq.toFixed(1)+" <small>avg</small>";
+  const a1k=document.getElementById("m-a1k"), a1v=document.getElementById("m-a1v");
+  const a2k=document.getElementById("m-a2k"), a2v=document.getElementById("m-a2v");
+  const vdnk=document.getElementById("m-vdnk"), vyak=document.getElementById("m-vyak");
+  const vdnEl=document.getElementById("m-vdn"), vyaEl=document.getElementById("m-vya");
+  const fmtPct=(el,v)=>{const s=v>0?"+":"";el.innerHTML=s+v.toFixed(1)+"%";
+    el.className="v mono "+(v>0.5?"delta-up":(v<-0.5?"delta-down":"delta-hold"));};
+  const fmtPts=(el,v)=>{const s=v>0?"+":"";el.innerHTML=s+v.toFixed(1)+" <small>pts</small>";
+    el.className="v mono "+(v>0.5?"delta-up":(v<-0.5?"delta-down":"delta-hold"));};
+
+  if(planBrand==="all"){
+    a1k.textContent="Awareness index"; a1v.textContent=o.awareness_index.toFixed(1);
+    a2k.textContent="Total spend";     a2v.textContent=money(o.total_spend);
+    vdnk.textContent="Awareness vs do-nothing"; vyak.textContent="Awareness vs year ago";
+    fmtPct(vdnEl,growthVsDoNothing(o)); fmtPct(vyaEl,growthVsYa(o));
+    document.getElementById("plan-note").innerHTML=
+      growthVsDoNothing(o)>3
+        ? `This plan lifts awareness <b>${growthVsDoNothing(o).toFixed(0)}%</b> over keeping the TV-skewed plan, and lands <b>${growthVsYa(o)>0?'+':''}${growthVsYa(o).toFixed(0)}%</b> versus last year. Net reach is largely held while attention shifts onto rising-mind platforms.`
+        : `Move spend toward rising-mind platforms to grow awareness versus do-nothing and versus a year ago.`;
+  } else {
+    const model=DATA.brand_plans[planBrand].awareness;
+    const proj=projectAwareness(model,o), baseProj=projectAwareness(model,BASE_OUT);
+    const star=" \u2605";
+    a1k.innerHTML="Unaided awareness"+(model.benchmark==="uba"?star:"");
+    a1v.textContent=pct(proj.uba,0);
+    a2k.innerHTML="Top-of-mind"+(model.benchmark==="toma"?star:"");
+    a2v.textContent=pct(proj.toma,0);
+    const recB =model.benchmark==="toma"?proj.toma:proj.uba;
+    const baseB=model.benchmark==="toma"?baseProj.toma:baseProj.uba;
+    vdnk.textContent=(model.benchmark==="toma"?"Top-of-mind":"Unaided")+" vs do-nothing";
+    vyak.textContent="Cross-media reach";
+    fmtPts(vdnEl, recB-baseB);
+    vyaEl.innerHTML=pct(o.cmr1*100,0); vyaEl.className="v mono";
+    const nm=model.benchmark==="toma"?"top-of-mind":"unaided";
+    document.getElementById("plan-note").innerHTML=
+      (recB-baseB>0.5)
+        ? `Targeting ${planBrand}'s best-quarter reach mix lifts projected ${nm} awareness <b>+${(recB-baseB).toFixed(0)} pts</b> over do-nothing, holding cross-media reach at <b>${pct(o.cmr1*100,0)}</b>. The benchmark is ${nm} because that is the metric with headroom for this brand.`
+        : `Move spend toward this brand's high-mind platforms to grow ${nm} awareness over the do-nothing plan.`;
+  }
+}
+
+/* ================= INIT ================= */
+(function init(){
+  // Tab 1 brand dropdown
+  const bp=document.getElementById("brand-pick");
+  bp.innerHTML=DATA.brands.map(b=>`<option>${b}</option>`).join("");
+  bp.onchange=renderBrand;
+  // Tab 2 brand filter
+  const pbf=document.getElementById("plan-brand");
+  pbf.innerHTML=`<option value="all">All brands (category)</option>`+
+    DATA.brands.map(b=>`<option value="${b}">${b}</option>`).join("");
+  pbf.onchange=e=>applyBrand(e.target.value);
+  document.getElementById("plan-brand-note").textContent=brandRationale("all");
+  renderSlope(); renderReach(); renderBrand();
+  buildSliders(); renderPlan();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+brand,platform,period,grp,reach_1plus_pct,reach_3plus_pct,avg_frequency
+Brand Aster,Free TV,Year ago,544.0,84.9,70.4,6.4
+Brand Aster,Free TV,This year,422.0,83.0,62.3,5.08
+Brand Aster,Radio,Year ago,262.0,28.6,24.5,9.14
+Brand Aster,Radio,This year,144.0,26.9,19.2,5.33
+Brand Aster,OOH,Year ago,211.0,42.1,31.2,5.01
+Brand Aster,OOH,This year,165.0,40.7,26.5,4.06
+Brand Aster,Meta,Year ago,289.0,67.9,42.4,4.26
+Brand Aster,Meta,This year,464.0,73.1,55.6,6.34
+Brand Aster,YouTube,Year ago,252.0,61.7,38.1,4.08
+Brand Aster,YouTube,This year,647.0,69.1,59.8,9.36
+Brand Aster,TikTok,Year ago,200.0,45.8,28.5,4.36
+Brand Aster,TikTok,This year,450.0,51.3,42.3,8.77
+Brand Briar,Free TV,Year ago,425.0,83.1,62.6,5.12
+Brand Briar,Free TV,This year,435.0,83.3,63.4,5.22
+Brand Briar,Radio,Year ago,246.0,28.5,24.0,8.64
+Brand Briar,Radio,This year,177.0,27.6,21.3,6.4
+Brand Briar,OOH,Year ago,155.0,40.2,25.2,3.85
+Brand Briar,OOH,This year,146.0,39.8,23.9,3.66
+Brand Briar,Meta,Year ago,264.0,66.6,39.6,3.95
+Brand Briar,Meta,This year,553.0,74.5,59.7,7.42
+Brand Briar,YouTube,Year ago,364.0,65.5,48.0,5.56
+Brand Briar,YouTube,This year,624.0,69.0,59.2,9.04
+Brand Briar,TikTok,Year ago,265.0,48.2,33.9,5.5
+Brand Briar,TikTok,This year,509.0,51.8,43.8,9.84
+Brand Cedar,Free TV,Year ago,298.0,78.9,48.9,3.78
+Brand Cedar,Free TV,This year,305.0,79.2,50.0,3.85
+Brand Cedar,Radio,Year ago,164.0,27.4,20.6,6.0
+Brand Cedar,Radio,This year,150.0,27.1,19.6,5.53
+Brand Cedar,OOH,Year ago,161.0,40.5,26.0,3.98
+Brand Cedar,OOH,This year,127.0,38.6,21.1,3.3
+Brand Cedar,Meta,Year ago,254.0,66.1,38.5,3.85
+Brand Cedar,Meta,This year,425.0,72.3,53.4,5.88
+Brand Cedar,YouTube,Year ago,235.0,60.8,36.1,3.87
+Brand Cedar,YouTube,This year,279.0,62.9,41.0,4.44
+Brand Cedar,TikTok,Year ago,164.0,43.9,24.6,3.74
+Brand Cedar,TikTok,This year,358.0,50.1,39.0,7.14
+Brand Dune,Free TV,Year ago,210.0,72.8,34.7,2.89
+Brand Dune,Free TV,This year,173.0,68.6,27.4,2.53
+Brand Dune,Radio,Year ago,173.0,27.6,21.1,6.27
+Brand Dune,Radio,This year,129.0,26.5,18.0,4.86
+Brand Dune,OOH,Year ago,98.0,36.0,15.8,2.72
+Brand Dune,OOH,This year,128.0,38.7,21.3,3.32
+Brand Dune,Meta,Year ago,204.0,62.6,31.9,3.26
+Brand Dune,Meta,This year,294.0,68.1,42.9,4.31
+Brand Dune,YouTube,Year ago,186.0,57.5,29.4,3.23
+Brand Dune,YouTube,This year,382.0,65.9,49.2,5.79
+Brand Dune,TikTok,Year ago,188.0,45.2,27.3,4.15
+Brand Dune,TikTok,This year,210.0,46.3,29.5,4.54
+Brand Ember,Free TV,Year ago,407.0,82.6,61.1,4.93
+Brand Ember,Free TV,This year,345.0,80.8,54.9,4.27
+Brand Ember,Radio,Year ago,186.0,27.8,21.8,6.7
+Brand Ember,Radio,This year,182.0,27.7,21.5,6.56
+Brand Ember,OOH,Year ago,147.0,39.8,24.0,3.68
+Brand Ember,OOH,This year,161.0,40.5,26.0,3.98
+Brand Ember,Meta,Year ago,313.0,68.9,44.8,4.54
+Brand Ember,Meta,This year,372.0,71.0,49.8,5.25
+Brand Ember,YouTube,Year ago,214.0,59.6,33.5,3.6
+Brand Ember,YouTube,This year,469.0,67.4,53.8,6.95
+Brand Ember,TikTok,Year ago,315.0,49.4,36.9,6.39
+Brand Ember,TikTok,This year,482.0,51.6,43.2,9.35
+Brand Fern,Free TV,Year ago,414.0,82.8,61.7,5.0
+Brand Fern,Free TV,This year,395.0,82.4,60.0,4.8
+Brand Fern,Radio,Year ago,280.0,28.8,24.9,9.74
+Brand Fern,Radio,This year,149.0,27.1,19.6,5.5
+Brand Fern,OOH,Year ago,187.0,41.5,28.9,4.5
+Brand Fern,OOH,This year,120.0,38.1,19.8,3.14
+Brand Fern,Meta,Year ago,338.0,69.9,47.1,4.84
+Brand Fern,Meta,This year,544.0,74.4,59.4,7.32
+Brand Fern,YouTube,Year ago,276.0,62.8,40.7,4.4
+Brand Fern,YouTube,This year,341.0,64.9,46.4,5.25
+Brand Fern,TikTok,Year ago,257.0,48.0,33.4,5.37
+Brand Fern,TikTok,This year,454.0,51.3,42.4,8.85
+Brand Grove,Free TV,Year ago,265.0,77.1,44.2,3.44
+Brand Grove,Free TV,This year,293.0,78.6,48.3,3.73
+Brand Grove,Radio,Year ago,162.0,27.4,20.4,5.92
+Brand Grove,Radio,This year,162.0,27.4,20.5,5.93
+Brand Grove,OOH,Year ago,183.0,41.3,28.5,4.43
+Brand Grove,OOH,This year,95.0,35.7,15.3,2.67
+Brand Grove,Meta,Year ago,165.0,58.8,25.6,2.81
+Brand Grove,Meta,This year,263.0,66.6,39.6,3.95
+Brand Grove,YouTube,Year ago,203.0,58.8,32.0,3.46
+Brand Grove,YouTube,This year,404.0,66.4,50.5,6.08
+Brand Grove,TikTok,Year ago,218.0,46.6,30.2,4.67
+Brand Grove,TikTok,This year,245.0,47.6,32.5,5.15
+Brand Haven,Free TV,Year ago,224.0,74.1,37.3,3.02
+Brand Haven,Free TV,This year,159.0,66.5,24.2,2.38
+Brand Haven,Radio,Year ago,120.0,26.2,17.3,4.59
+Brand Haven,Radio,This year,89.0,24.6,13.7,3.6
+Brand Haven,OOH,Year ago,128.0,38.7,21.3,3.32
+Brand Haven,OOH,This year,129.0,38.8,21.4,3.33
+Brand Haven,Meta,Year ago,146.0,56.4,22.3,2.6
+Brand Haven,Meta,This year,357.0,70.5,48.7,5.07
+Brand Haven,YouTube,Year ago,135.0,52.0,20.6,2.59
+Brand Haven,YouTube,This year,277.0,62.8,40.8,4.41
+Brand Haven,TikTok,Year ago,142.0,42.3,21.7,3.36
+Brand Haven,TikTok,This year,352.0,50.0,38.7,7.04
+Brand Ivory,Free TV,Year ago,359.0,81.3,56.4,4.42
+Brand Ivory,Free TV,This year,306.0,79.2,50.0,3.86
+Brand Ivory,Radio,Year ago,128.0,26.5,18.0,4.85
+Brand Ivory,Radio,This year,179.0,27.7,21.4,6.48
+Brand Ivory,OOH,Year ago,110.0,37.2,18.1,2.95
+Brand Ivory,OOH,This year,126.0,38.5,20.9,3.27
+Brand Ivory,Meta,Year ago,178.0,60.2,27.7,2.96
+Brand Ivory,Meta,This year,448.0,72.8,54.7,6.15
+Brand Ivory,YouTube,Year ago,159.0,55.0,25.1,2.9
+Brand Ivory,YouTube,This year,280.0,62.9,41.1,4.45
+Brand Ivory,TikTok,Year ago,190.0,45.3,27.5,4.18
+Brand Ivory,TikTok,This year,240.0,47.4,32.0,5.05
+Brand Juno,Free TV,Year ago,285.0,78.2,47.1,3.64
+Brand Juno,Free TV,This year,345.0,80.8,54.8,4.27
+Brand Juno,Radio,Year ago,225.0,28.3,23.4,7.95
+Brand Juno,Radio,This year,185.0,27.8,21.7,6.67
+Brand Juno,OOH,Year ago,118.0,37.9,19.5,3.11
+Brand Juno,OOH,This year,114.0,37.6,18.9,3.04
+Brand Juno,Meta,Year ago,272.0,67.1,40.5,4.05
+Brand Juno,Meta,This year,340.0,70.0,47.3,4.86
+Brand Juno,YouTube,Year ago,298.0,63.6,42.8,4.69
+Brand Juno,YouTube,This year,396.0,66.2,50.1,5.99
+Brand Juno,TikTok,Year ago,159.0,43.5,23.9,3.64
+Brand Juno,TikTok,This year,320.0,49.5,37.2,6.48
