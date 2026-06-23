@@ -4,21 +4,33 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📡</text></svg>">
 <title>Media Reach &amp; Frequency Model</title>
 <style>
   :root{
     --ink:#15192b; --ink-soft:#3b4256; --mute:#7a8198;
     --surface:#f5f6f9; --card:#ffffff; --line:#e3e6ee; --line-strong:#c9cee0;
-    --trad:#9aa1b4; --trad-deep:#6f7790;          /* traditional: quiet */
-    --digi:#4f46e5; --digi-deep:#3b32c9; --digi-soft:#ece9fe; /* digital: vivid */
+    --trad:#9aa1b4; --trad-deep:#6f7790;
+    --digi:#4f46e5; --digi-deep:#3b32c9; --digi-soft:#ece9fe;
     --up:#0e9f6e; --down:#e02424; --hold:#b08900;
     --mono:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
     --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --r:10px; --shadow:0 1px 2px rgba(21,25,43,.06),0 8px 24px rgba(21,25,43,.05);
+    color-scheme:light only;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      --ink:#15192b; --ink-soft:#3b4256; --mute:#7a8198;
+      --surface:#f5f6f9; --card:#ffffff; --line:#e3e6ee; --line-strong:#c9cee0;
+      --trad:#9aa1b4; --trad-deep:#6f7790;
+      --digi:#4f46e5; --digi-deep:#3b32c9; --digi-soft:#ece9fe;
+      --up:#0e9f6e; --down:#e02424; --hold:#b08900;
+    }
   }
   *{box-sizing:border-box}
-  html,body{margin:0}
-  body{background:var(--surface);color:var(--ink);font-family:var(--sans);
+  html,body{margin:0;background:#f5f6f9;color:#15192b}
+  body{background:#f5f6f9;color:#15192b;font-family:var(--sans);
        line-height:1.5;-webkit-font-smoothing:antialiased;font-size:15px}
   .wrap{max-width:1040px;margin:0 auto;padding:0 18px}
   .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
@@ -171,16 +183,56 @@
   .hidden{display:none !important}
 
   @media (max-width:760px){
+    html,body{background:#f5f6f9 !important}
     .plan-grid{grid-template-columns:1fr}
-    .metrics{grid-template-columns:repeat(2,1fr)}
     .rb-row{grid-template-columns:80px 1fr}
+
+    /* Header — stack so tabs don't clip */
+    .top-row{padding:10px 14px;gap:6px;flex-direction:column;align-items:flex-start;width:100%}
+    .brandmark .ttl{font-size:14px}
+    .badge{display:none}
+    .tabs{width:100%;border-radius:8px;justify-content:stretch;padding:3px}
+    .tab{font-size:10px;padding:6px 6px;flex:1;text-align:center;white-space:nowrap;letter-spacing:0}
+
+    /* Main */
+    .wrap{padding:0 12px;width:100%;max-width:100vw;overflow-x:hidden}
+    section.pane{padding:18px 0 100px}
+    .lede{font-size:18px}
+
+    /* Controls */
+    .controls{flex-direction:column;align-items:flex-start;gap:8px}
+    select{width:100%}
+    .presets{flex-wrap:wrap}
+    .seg{flex-wrap:wrap}
+
+    /* Tables — fit in viewport, wrap headers, shrink font */
+    table{font-size:11px;width:100%;table-layout:fixed}
+    thead th{font-size:9px;padding:5px 3px;white-space:normal;line-height:1.2;word-break:break-word}
+    td{padding:6px 3px;font-size:11px}
+    td:first-child,th:first-child{width:22%}
+
+    /* Hide reach bar column on mobile — too wide */
+    th:last-child,td:last-child{display:none}
+
+    /* CMR card */
+    .cmr-card{overflow:hidden}
+    .cmr-big{font-size:clamp(32px,10vw,48px)}
+    .fexpr{font-size:11px;word-break:break-word;line-height:1.8}
+    .fterm{font-size:10px;padding:1px 4px;margin:1px}
+
+    /* Metrics grid */
+    .metrics{grid-template-columns:1fr 1fr;gap:8px}
+    .metric{padding:10px 10px;overflow:hidden}
+    .metric .v{font-size:17px}
+    .metric .k{font-size:9px;letter-spacing:.04em}
   }
   @media (prefers-reduced-motion:reduce){
     *{transition:none !important}
   }
 </style>
 </head>
-<body>
+<body style="background:#f5f6f9;color:#15192b">
+<a href="https://leilaeuniceclemente.github.io" style="position:fixed;bottom:16px;left:16px;z-index:9999;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(21,25,43,0.92);backdrop-filter:blur(8px);border:1px solid rgba(79,70,229,0.4);border-radius:6px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);text-decoration:none;font-family:system-ui,sans-serif;" onmouseover="this.style.color='#4f46e5';this.style.borderColor='#4f46e5'" onmouseout="this.style.color='rgba(255,255,255,0.7)';this.style.borderColor='rgba(79,70,229,0.4)'">← Portfolio</a>
 <header class="top">
   <div class="top-row">
     <div class="brandmark">
